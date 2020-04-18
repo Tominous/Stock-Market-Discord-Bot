@@ -109,8 +109,8 @@ async function showList(msg){
         let list = util.getTradeList(msg);
         let embedList = [];
 
-        if (list.size <= 0) {
-            msg.channel.send("You don't own any trade!");
+        if (list.length <= 0) {
+            msg.channel.send("You don't own any share!");
         } else {
             for (const elem of list) {
                 let tradeInfo = await util.getTradeInfo(elem.symbol, elem)
