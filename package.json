@@ -12,8 +12,7 @@
   "dependencies": {
     "better-sqlite3": "^6.0.1",
     "discord.js": "^12.1.1",
-    "financialmodelingprep": "^1.0.2",
-    "sqlite3": "^4.1.1"
+    "financialmodelingprep": "^1.0.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.3"
