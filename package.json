@@ -1,0 +1,23 @@
+{
+  "name": "stockmarketbot",
+  "version": "1.0.0",
+  "description": "A bot to 'play' with the stock market with fake money",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "dev": "nodemon main.js"
+  },
+  "keywords": [],
+  "author": "Cryx#6546",
+  "dependencies": {
+    "better-sqlite3": "^6.0.1",
+    "discord.js": "^12.1.1",
+    "financialmodelingprep": "^1.0.2",
+    "sqlite3": "^4.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.3"
+  }
+
+}
+

@@ -1,0 +1,5 @@
+db
+package-lock.json
+auth.json
+.idea
+node_modules
