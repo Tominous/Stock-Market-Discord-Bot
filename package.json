@@ -2,10 +2,10 @@
   "name": "stockmarketbot",
   "version": "1.0.0",
   "description": "A bot to 'play' with the stock market with fake money",
-  "main": "main.js",
+  "main": "js/main.js",
   "scripts": {
-    "start": "node main.js",
-    "dev": "nodemon main.js"
+    "start": "node js/main.js",
+    "dev": "nodemon js/main.js"
   },
   "keywords": [],
   "author": "Cryx#6546",
