@@ -147,7 +147,7 @@ async function showList(msg){
             for (const elem of tradeInfoList) {
                 let arr = {
                     name: `${elem.status.toUpperCase()} - ${elem.name} - ${elem.symbol.toUpperCase()} (ID: ${elem.id})`,
-                    value: `Profit/Loss: **${elem.profitPercentage.toFixed(5)}%**\n__By share__: Paid: **$${util.prettyNum(elem.haspaid/elem.volume)}**, Now: **$${util.prettyNum(elem.worthTrade/elem.volume)}** (**$${(util.prettyNum(elem.profit/elem.volume))}**)\n__All__: Paid: **$${util.prettyNum(elem.haspaid)}**, Now: **$${util.prettyNum(elem.worthTrade)}** (**$${util.prettyNum(elem.profit)}**)\n`
+                    value: `Profit/Loss: **${util.setRightNumFormat(elem.profitPercentage)}%**\n__By share__: Paid: **$${util.setRightNumFormat(elem.haspaid/elem.volume)}**, Now: **$${util.setRightNumFormat(elem.worthTrade/elem.volume)}** (**$${(util.setRightNumFormat(elem.profit/elem.volume))}**)\n__Your trade__: Paid: **$${util.setRightNumFormat(elem.haspaid)}**, Now: **$${util.setRightNumFormat(elem.worthTrade)}** (**$${util.setRightNumFormat(elem.profit)}**)\n`
                 };
                 embedList.push(arr);
             }
@@ -175,7 +175,7 @@ async function closeTrade(msg){
             msg.channel.send(util.createEmbedMessage(msg, earnedLost[1],"Trade closed",
                 [{
                 name: `Trade n°**${id}** closed.`,
-                value: `You have earned **$${util.prettyNum(trade[0].worthTrade)}**`
+                value: `You have earned **$${util.setRightNumFormat(trade[0].worthTrade)}**`
             }]));
 
             showBalance(msg);

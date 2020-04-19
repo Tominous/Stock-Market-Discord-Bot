@@ -139,7 +139,11 @@ function updateMoney(msg, userID, num){
 
     money = (money + num < 0) ? 0 : (money + num);
     dbData.prepare("UPDATE data SET money = ? WHERE id = ?").run(money, userID);
+}
 
+
+function setRightNumFormat(num){
+    return (Math.abs(num) <= 10 && num !== 0) ? num.toFixed(5) : prettyNum(num);
 }
 
 module.exports = {
@@ -150,5 +154,6 @@ module.exports = {
     createEmbedMessage : createEmbedMessage,
     prettyNum : prettyNum,
     getTradeInfo : getTradeInfo,
+    setRightNumFormat : setRightNumFormat,
     updateMoney : updateMoney
 };
