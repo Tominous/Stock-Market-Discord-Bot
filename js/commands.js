@@ -51,21 +51,26 @@ function showHelp(msg){
 //sm!search
 async function searchMarket(msg){
     let tag = msg.content.split(' ')[1];
-    let text = "```"
 
     let response = await fmp.search(tag, 10);
     if(response.length <= 0){
         text = "Nothing was found, try to shorten the symbol (as removing 'USD' from it if present) and try again."
         msg.channel.send(text);
     }
+    else{
+        let arr = [];
 
-    for (const r of response) {
-        let resp = await fmp.stock(r.symbol).quote();
-        text = text.concat(`${resp[0].name} (${resp[0].symbol}) \n\tPrice: $${resp[0].price}  (${resp[0].changesPercentage}%)\n \n`);
+        for (const r of response) {
+            let resp = await fmp.stock(r.symbol).quote();
+            let text = {
+                name : `${resp[0].name} (${resp[0].symbol})`,
+                value : `Price: **$${resp[0].price}**  (Change: **${resp[0].changesPercentage}%** | **$${resp[0].change}**)\n \n`
+            }
+            arr.push(text);
+        }
+
+        msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Results", arr));
     }
-
-    text = text.concat('```');
-    msg.channel.send(text);
 }
 
 //sm!show
@@ -93,12 +98,31 @@ function getDaily(msg){
     if(util.isAccountCreated(msg.author.id, true, msg)){
         let data = util.getUserData(msg.author.id, ["dailytime", "money"])
         let dateNow = Math.round(Date.now()/1000);
+        let delay = parseInt(data.dailytime) - dateNow
 
-        if(parseInt(data.dailytime) - dateNow < 0){
+        if(delay < 0){
             let newBalance = data.money + 2500;
             let newDailyTime = dateNow + 86400;
+            console.log(dateNow);
+            console.log(newDailyTime);
 
             dbData.prepare("UPDATE data SET money = ?, dailytime = ? WHERE id = ?").run(newBalance, newDailyTime,  msg.author.id,);
+            msg.channel.send(util.createEmbedMessage(msg, "56C114", "Your daily reward!",
+                [{
+                    name : `You have received your daily reward!`,
+                    value: `Thank you for your fidelity, you have received $2,500!`
+            }] ));
+        }
+        else{
+            let h = "0" + parseInt(delay / 3600);
+            let m = "0" + parseInt(delay % 3600 / 60) ;
+            let s = "0" + parseInt(delay % 60);
+
+            msg.channel.send(util.createEmbedMessage(msg, "FF0000", "Your daily reward!",
+                [{
+                    name : `Be patient !`,
+                    value: `Please wait **${h.toString().substr(-2)}h${m.toString().substr(-2)}m${s.toString().substr(-2)}s** and try again.`
+            }]));
         }
     }
 }
