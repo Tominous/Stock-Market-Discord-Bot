@@ -113,11 +113,11 @@ function getDaily(msg){
             console.log(newDailyTime);
 
             dbData.prepare("UPDATE data SET money = ?, dailytime = ? WHERE id = ?").run(newBalance, newDailyTime,  msg.author.id,);
-            msg.channel.send(util.createEmbedMessage(msg, "56C114", "Your daily reward!",
-                [{
-                    name : `You have received your daily reward!`,
-                    value: `Thank you for your fidelity, you have received $10,000!`
-            }] ));
+            msg.channel.send(util.createEmbedMessage(msg, "56C114", "Your daily reward!", [{
+                name : `You have received your daily reward!`,
+                value: `Thank you for your fidelity, you have received $10,000!`
+                }
+            ]));
         }
         else{
             let h = "0" + parseInt(delay / 3600);
