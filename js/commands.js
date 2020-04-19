@@ -1,6 +1,6 @@
 const fmp = require("financialmodelingprep");
 const sql = require("better-sqlite3");
-const util = require("./utils.js")
+const util = require("./utils.js");
 const dbData = sql("./db/userdata.db");
 
 // sm!init
@@ -10,8 +10,8 @@ function initializeUser(msg){
         msg.channel.send("You have already initialized you're account!");
     }
     else {
-        dbData.prepare("INSERT INTO data VALUES(?,?,?,?)").run(msg.author.id, 5000, '{"trades" : []}', 0)
-        msg.channel.send("Your account has been created!")
+        dbData.prepare("INSERT INTO data VALUES(?,?,?,?)").run(msg.author.id, 5000, '{"trades" : []}', 0);
+        msg.channel.send("Your account has been created!");
         showHelp(msg);
     }
 }
@@ -19,11 +19,10 @@ function initializeUser(msg){
 // sm!balance
 function showBalance(msg){
     if(util.isAccountCreated(msg.author.id, true, msg)) {
-        let arr =
-            {
+        let arr = {
             name: "Amount",
             value: `You have now **$${util.prettyNum(util.getUserData(msg.author.id, "money").money)}**`
-            }
+            };
 
         msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Balance", [arr]));
     }
@@ -44,7 +43,8 @@ function showHelp(msg){
             {
                 name: "*Stock Market* ",
                 value: "`search <name/symbol>` To search stock markets\n`show <symbol>` To get details about a particular market\n`newtrade <symbol> <buy/sell> <amount>` Create a trade on a market.\n==>`buy` if you think the stock will go up, \n==>`sell` if you think the stock will go down.\n`closetrade <ID>` Close an trade (the ID can be found with the list command). Give to you the profit or take from you the loss to pay."
-            }]
+            }
+        ]
     ));
 }
 
@@ -54,7 +54,7 @@ async function searchMarket(msg){
 
     let response = await fmp.search(tag, 10);
     if(response.length <= 0){
-        text = "Nothing was found, try to shorten the symbol (as removing 'USD' from it if present) and try again."
+        text = "Nothing was found, try to shorten the symbol (as removing 'USD' from it if present) and try again.";
         msg.channel.send(text);
     }
     else{
@@ -65,7 +65,7 @@ async function searchMarket(msg){
             let text = {
                 name : `${resp[0].name} (${resp[0].symbol})`,
                 value : `Price: **$${resp[0].price}**  (Change: **${resp[0].changesPercentage}%** | **$${resp[0].change}**)\n \n`
-            }
+            };
             arr.push(text);
         }
 
@@ -77,7 +77,6 @@ async function searchMarket(msg){
 function showMarket(msg){
     let tag = msg.content.split(' ')[1];
 
-        let text = "```"
         fmp.stock(tag).quote().then(resp => {
             try {
                 resp = resp[0];
@@ -98,7 +97,7 @@ function getDaily(msg){
     if(util.isAccountCreated(msg.author.id, true, msg)){
         let data = util.getUserData(msg.author.id, ["dailytime", "money"])
         let dateNow = Math.round(Date.now()/1000);
-        let delay = parseInt(data.dailytime) - dateNow
+        let delay = parseInt(data.dailytime) - dateNow;
 
         if(delay < 0){
             let newBalance = data.money + 2500;
@@ -115,7 +114,7 @@ function getDaily(msg){
         }
         else{
             let h = "0" + parseInt(delay / 3600);
-            let m = "0" + parseInt(delay % 3600 / 60) ;
+            let m = "0" + parseInt(delay % 3600 / 60);
             let s = "0" + parseInt(delay % 60);
 
             msg.channel.send(util.createEmbedMessage(msg, "FF0000", "Your daily reward!",
@@ -137,14 +136,12 @@ async function showList(msg){
             msg.channel.send("You don't own any share!");
         } else {
             for (const elem of list) {
-                let tradeInfo = await util.getTradeInfo(elem.symbol, elem)
-                let textProfit = (tradeInfo.profit >= 0) ? "Profit" : "Loss";
+                let tradeInfo = await util.getTradeInfo(elem.symbol, elem);
 
                 let arr = {
                     name: `${elem.status.toUpperCase()} - ${tradeInfo.name} - ${elem.symbol.toUpperCase()} (ID: ${elem.id})`,
                     value: `**$${util.prettyNum(tradeInfo.worthTrade)}** (Change: **${tradeInfo.profitPercentage.toFixed(4)}%** | **$${tradeInfo.profit.toLocaleString()}**)`
-                }
-
+                };
                 embedList.push(arr);
             }
             msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Your trades", embedList));
@@ -158,24 +155,24 @@ async function closeTrade(msg){
         let id = parseInt(msg.content.split(" ")[1]);
 
         if(util.getTradeList(msg, id) === undefined || isNaN(id)){
-            msg.channel.send(`You don't have any trade with ID: **${id}** \nType sm!list to see your trades and IDs`)
+            msg.channel.send(`You don't have any trade with ID: **${id}** \nType sm!list to see your trades and IDs`);
         }
 
         else{
             let trade =  util.getTradeList(msg, id);
             trade = await util.getTradeInfo(trade.symbol, trade);
-            util.updateMoney(msg, msg.author.id, trade.profit)
+            util.updateMoney(msg, msg.author.id, trade.profit);
 
             let earnedLost = (trade.profit > 0) ? ["earned", "56C114"] : ["lost", "FF0000"];
-
             msg.channel.send(util.createEmbedMessage(msg, earnedLost[1],"Trade closed",
                 [{
                 name: `Trade n°**${id}** closed.`,
                 value: `You have ${earnedLost[0]} **$${util.prettyNum(Math.abs(trade.profit))}**`
             }]));
+
             showBalance(msg);
 
-            util.updateList(msg, "del" , [id])
+            util.updateList(msg, "del" , [id]);
         }
     }
 }
@@ -184,13 +181,13 @@ async function closeTrade(msg){
 async function newTrade(msg){
     if(util.isAccountCreated(msg.author.id, true, msg)) {
         let symb = msg.content.split(" ")[1];
-        let status = msg.content.split(" ")[2]
-        let amount = msg.content.split(" ")[3]
+        let status = msg.content.split(" ")[2];
+        let amount = msg.content.split(" ")[3];
         let resp = await fmp.stock(symb).quote();
         let list = util.getTradeList(msg);
 
         if(resp === undefined || (status !== "buy" && status !== "sell") || isNaN(amount) || amount < 0){
-            msg.channel.send("Syntax error! Please try again. `sm!newtrade <symbol> <buy/sell> <amount>`")
+            msg.channel.send("Syntax error! Please try again. `sm!newtrade <symbol> <buy/sell> <amount>`");
         }
 
         else{
@@ -206,7 +203,7 @@ async function newTrade(msg){
 
                 else {
                     let vol = amount / resp[0].price;
-                    util.updateList(msg, "add", [symb, status, vol, amount])
+                    util.updateList(msg, "add", [symb, status, vol, amount]);
                     dbData.prepare("UPDATE data SET money = ? WHERE id = ?").run(money - amount, msg.author.id);
 
                     msg.channel.send(util.createEmbedMessage(msg, "56C114", "Payement accepted!",
@@ -238,4 +235,4 @@ module.exports = {
     closeTrade : closeTrade,
     newTrade : newTrade,
     showHelp : showHelp
-}
+};

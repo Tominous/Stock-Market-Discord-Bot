@@ -19,7 +19,7 @@ client.on("guildCreate", guild =>{
 
             if(channel.permissionsFor(guild.me).has("SEND_MESSAGES")){
                 defChannel = channel;
-                channel.send("Hey! To get started type `sm!help` !")
+                channel.send("Hey! To get started type `sm!help` !");
             }
         }
     });
@@ -35,7 +35,7 @@ client.on("message", msg => {
             switch (sMsg[0]) {
                 // Basics
                 case "sm!init":
-                    cmd.initializeUser(msg)
+                    cmd.initializeUser(msg);
                     break;
 
                 case "sm!help":
@@ -76,7 +76,7 @@ client.on("message", msg => {
     }
     catch (e) {
         msg.channel.send("Something went terribly wrong! Please send the following text to Cryx#6546\n" +
-            "```\n"+e+"\n```")
+            "```\n"+e+"\n```");
     }
 });
 

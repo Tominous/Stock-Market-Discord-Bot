@@ -9,7 +9,7 @@ function getUserData(userId, value = ["*"]){
 
 
 function isAccountCreated(userId, autoMessage = false, msg){
-    let row = dbData.prepare("SELECT id FROM data WHERE id = ?").get(userId)
+    let row = dbData.prepare("SELECT id FROM data WHERE id = ?").get(userId);
     let isCreated = (row !== undefined);
 
     if(!isCreated){
@@ -72,10 +72,11 @@ function createEmbedMessage(msg, color, title, content = [], desc = null){
 
             fields: []
         }
-    }
+    };
     content.forEach(e => embed.embed.fields.push(e));
     return embed;
 }
+
 
 function prettyNum(num){
     return parseFloat(num.toFixed(2)).toLocaleString();
@@ -97,8 +98,8 @@ async function getTradeInfo(symb, elem){
         name : resp[0].name,
         worthTrade: worthTrade,
         profit : profit,
-        profitPercentage :percentage
-    }
+        profitPercentage : percentage
+    };
 }
 
 
@@ -118,5 +119,5 @@ module.exports = {
     createEmbedMessage : createEmbedMessage,
     prettyNum : prettyNum,
     getTradeInfo : getTradeInfo,
-    updateMoney : updateMoney,
-}
+    updateMoney : updateMoney
+};
