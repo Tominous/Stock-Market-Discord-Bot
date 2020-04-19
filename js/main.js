@@ -30,7 +30,7 @@ client.on("message", msg => {
     let sMsg = msg.content.split(' ');
 
     try {
-        if(msg.content.startsWith("sm!") && msg.author.id === "165127283470893056") {
+        if(msg.content.startsWith("sm!")){
             msg.content = msg.content.toLowerCase();
             switch (sMsg[0]) {
                 // Basics
