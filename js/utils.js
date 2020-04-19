@@ -82,26 +82,53 @@ function prettyNum(num){
     return parseFloat(num.toFixed(2)).toLocaleString();
 }
 
+async function getTradeInfo(list){
+    let arrSymb = [];
+    let arrTrade = [];
 
-async function getTradeInfo(symb, elem){
-    elem.haspaid = parseFloat(elem.haspaid);
-    let resp = await fmp.stock(symb).quote();
-    let worthTrade = resp[0].price * elem.volume;
-    let profit = worthTrade - elem.haspaid;
+    for (const elem of list) {arrSymb.push(elem.symbol)}
+    let resp = await fmp.stock(arrSymb).quote();
+    list.forEach(elem => {
+        let market = resp.find(e => elem.symbol === e.symbol.toLowerCase())
+        arrTrade.push(
+            {
+                id: elem.id,
+                name: market.name,
+                symbol: elem.symbol,
+                volume: elem.volume,
+                status: elem.status,
+                haspaid: parseFloat(elem.haspaid),
+                price: market.price,
+            }
+        )
+    });
 
-    if (elem.status === "sell") {
-        profit *= -1;
-        worthTrade = profit + elem.haspaid;
+    let arrResult = [];
+
+    for(let m of arrTrade){
+        let worthTrade = m.price * m.volume;
+        let profit = worthTrade - m.haspaid;
+
+        if (m.status === "sell") {
+            profit *= -1;
+            worthTrade = profit + m.haspaid;
+        }
+
+        let percentage = (profit / (m.price * m.volume)) * 100;
+
+        arrResult.push(
+            {
+                name : m.name,
+                symbol : m.symbol,
+                status : m.status,
+                id : m.id,
+                worthTrade: worthTrade,
+                profit : profit,
+                profitPercentage : percentage
+            }
+        )
     }
-
-    let percentage = (profit / resp[0].price) * 100;
-
-    return {
-        name : resp[0].name,
-        worthTrade: worthTrade,
-        profit : profit,
-        profitPercentage : percentage
-    };
+    return arrResult;
 }
 
 

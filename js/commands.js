@@ -38,11 +38,11 @@ function showHelp(msg){
             },
             {
                 name: "*Player account*",
-                value: "`balance` To see how rich you are \n`list` Your current trades \n`daily` To get your daily reward\n\n"
+                value: "`balance` To admire your wealth \n`list` Your current trades \n`daily` To get your daily reward\n\n"
             },
             {
                 name: "*Stock Market* ",
-                value: "`search <name/symbol>` To search stock markets\n`show <symbol>` To get details about a particular market\n`newtrade <symbol> <buy/sell> <amount>` Create a trade on a market.\n==>`buy` if you think the stock will go up, \n==>`sell` if you think the stock will go down.\n`closetrade <ID>` Close an trade (the ID can be found with the list command). Give to you the profit or take from you the loss to pay."
+                value: "`search <name/symbol>` To search stock markets\n`show <symbol>` To get details about a particular market\n`newtrade <buy/sell> <symbol> <amount>` To trade stock on the market.\n==>`buy` if you think the stock will go up, \n==>`sell` if you think the stock will go down.\n`closetrade <ID>` Close a trade (the ID can be found with the `list` command). Give to you the value of your trade."
             }
         ]
     ));
@@ -50,26 +50,29 @@ function showHelp(msg){
 
 //sm!search
 async function searchMarket(msg){
-    let tag = msg.content.split(' ')[1];
+    let tag = msg.content.split('sm!search ')[1];
 
     let response = await fmp.search(tag, 10);
     if(response.length <= 0){
-        text = "Nothing was found, try to shorten the symbol (as removing 'USD' from it if present) and try again.";
+        text = "Nothing was found, try to shorten the symbol or the name (as removing 'USD' from it if present) and try again.";
         msg.channel.send(text);
     }
     else{
-        let arr = [];
+        let arrText = [];
+        let arrSymb = []
 
-        for (const r of response) {
-            let resp = await fmp.stock(r.symbol).quote();
+        for (const r of response) {arrSymb.push(r.symbol)}
+
+        let resp = await fmp.stock(arrSymb).quote();
+        for(const market of resp){
             let text = {
-                name : `${resp[0].name} (${resp[0].symbol})`,
-                value : `Price: **$${resp[0].price}**  (Change: **${resp[0].changesPercentage}%** | **$${resp[0].change}**)\n \n`
+                name : `${market.name} (${market.symbol})`,
+                value : `Price: **$${market.price}**  (Change: **${market.changesPercentage}%** | **$${market.change}**)\n \n`
             };
-            arr.push(text);
-        }
+            arrText.push(text);
 
-        msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Results", arr));
+        }
+        msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Results", arrText));
     }
 }
 
@@ -135,12 +138,12 @@ async function showList(msg){
         if (list.length <= 0) {
             msg.channel.send("You don't own any share!");
         } else {
-            for (const elem of list) {
-                let tradeInfo = await util.getTradeInfo(elem.symbol, elem);
 
+            let tradeInfoList = await util.getTradeInfo(list);
+            for (const elem of tradeInfoList) {
                 let arr = {
-                    name: `${elem.status.toUpperCase()} - ${tradeInfo.name} - ${elem.symbol.toUpperCase()} (ID: ${elem.id})`,
-                    value: `**$${util.prettyNum(tradeInfo.worthTrade)}** (Change: **${tradeInfo.profitPercentage.toFixed(4)}%** | **$${tradeInfo.profit.toLocaleString()}**)`
+                    name: `${elem.status.toUpperCase()} - ${elem.name} - ${elem.symbol.toUpperCase()} (ID: ${elem.id})`,
+                    value: `**$${util.prettyNum(elem.worthTrade)}** (Change: **${elem.profitPercentage.toFixed(4)}%** | **$${elem.profit.toLocaleString()}**)`
                 };
                 embedList.push(arr);
             }
@@ -160,14 +163,15 @@ async function closeTrade(msg){
 
         else{
             let trade =  util.getTradeList(msg, id);
-            trade = await util.getTradeInfo(trade.symbol, trade);
-            util.updateMoney(msg, msg.author.id, trade.worthTrade);
+            trade = await util.getTradeInfo([trade]);
 
-            let earnedLost = (trade.profit > 0) ? ["earned", "56C114"] : ["lost", "FF0000"];
+            util.updateMoney(msg, msg.author.id, trade[0].worthTrade);
+
+            let earnedLost = (trade[0].profit > 0) ? ["earned", "56C114"] : ["lost", "FF0000"];
             msg.channel.send(util.createEmbedMessage(msg, earnedLost[1],"Trade closed",
                 [{
                 name: `Trade n°**${id}** closed.`,
-                value: `You have earned **$${util.prettyNum(trade.worthTrade)}**`
+                value: `You have earned **$${util.prettyNum(trade[0].worthTrade)}**`
             }]));
 
             showBalance(msg);
@@ -180,8 +184,8 @@ async function closeTrade(msg){
 //sm!newtrade
 async function newTrade(msg){
     if(util.isAccountCreated(msg.author.id, true, msg)) {
-        let symb = msg.content.split(" ")[1];
-        let status = msg.content.split(" ")[2];
+        let status = msg.content.split(" ")[1];
+        let symb = msg.content.split(" ")[2];
         let amount = msg.content.split(" ")[3];
         let resp = await fmp.stock(symb).quote();
         let list = util.getTradeList(msg);
