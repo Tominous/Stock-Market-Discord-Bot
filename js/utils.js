@@ -122,6 +122,8 @@ async function getTradeInfo(list){
                 symbol : m.symbol,
                 status : m.status,
                 id : m.id,
+                volume : m.volume,
+                haspaid : m.haspaid,
                 worthTrade: worthTrade,
                 profit : profit,
                 profitPercentage : percentage

@@ -10,7 +10,7 @@ function initializeUser(msg){
         msg.channel.send("You have already initialized you're account!");
     }
     else {
-        dbData.prepare("INSERT INTO data VALUES(?,?,?,?)").run(msg.author.id, 5000, '{"trades" : []}', 0);
+        dbData.prepare("INSERT INTO data VALUES(?,?,?,?)").run(msg.author.id, 100000, '{"trades" : []}', 0);
         msg.channel.send("Your account has been created!");
         showHelp(msg);
     }
@@ -42,7 +42,11 @@ function showHelp(msg){
             },
             {
                 name: "*Stock Market* ",
-                value: "`search <name/symbol>` To search stock markets\n`show <symbol>` To get details about a particular market\n`newtrade <buy/sell> <symbol> <amount>` To trade stock on the market.\n==>`buy` if you think the stock will go up, \n==>`sell` if you think the stock will go down.\n`closetrade <ID>` Close a trade (the ID can be found with the `list` command). Give to you the value of your trade."
+                value: "`search <name/symbol>` To search stock markets\n`show <symbol>` To get details about a particular market\n`newtrade <buy/sell> <symbol> <price>` To trade stock on the market(ex: *sm!newtrade buy AAPL 5000*)\n==>`buy` if you think the stock will go up, \n==>`sell` if you think the stock will go down.\n`closetrade <ID>`(ex: *sm!closetrade 0*) Close a trade (the ID can be found with the `list` command). Give to you the value of your trade."
+            },
+            {
+                name: "*Okay, how do I play?* ",
+                value: "First, you are going to look for a market. Type `sm!search <name/symbol>` (ex: *sm!search Apple or sm!search AAPL*).\nThen type `sm!show <symbol>` (ex: *sm!show AAPL*) if you want more details about the stock.\nNow it's time to trade! Follow the instructions above for newtrade and closetrade!\nHappy trading!",
             }
         ]
     ));
@@ -85,7 +89,7 @@ function showMarket(msg){
                 resp = resp[0];
                 msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [{
                     name: `Information for ${resp.name} (${resp.symbol}): `,
-                    value : `Price: **$${util.prettyNum(resp.price)}** (Change: **${resp.changesPercentage}%** => **$${util.prettyNum(resp.change)}**) \n \nSome prices may be different due to sources or delays.\nIf prices do not fluctuate, markets are likely closed.`
+                    value : `Price: **$${resp.price}** (Change: **${resp.changesPercentage}%** => **$${resp.change}**) \n \nSome prices may be different due to sources or delays.\nIf prices do not fluctuate, markets are likely closed.`
                 }], `See the chart [here](https://tradingview.com/chart/?symbol=${resp.symbol})`));
             }
             catch (e) {
@@ -103,7 +107,7 @@ function getDaily(msg){
         let delay = parseInt(data.dailytime) - dateNow;
 
         if(delay < 0){
-            let newBalance = data.money + 2500;
+            let newBalance = data.money + 10000;
             let newDailyTime = dateNow + 86400;
             console.log(dateNow);
             console.log(newDailyTime);
@@ -112,7 +116,7 @@ function getDaily(msg){
             msg.channel.send(util.createEmbedMessage(msg, "56C114", "Your daily reward!",
                 [{
                     name : `You have received your daily reward!`,
-                    value: `Thank you for your fidelity, you have received $2,500!`
+                    value: `Thank you for your fidelity, you have received $10,000!`
             }] ));
         }
         else{
@@ -143,7 +147,7 @@ async function showList(msg){
             for (const elem of tradeInfoList) {
                 let arr = {
                     name: `${elem.status.toUpperCase()} - ${elem.name} - ${elem.symbol.toUpperCase()} (ID: ${elem.id})`,
-                    value: `**$${util.prettyNum(elem.worthTrade)}** (Change: **${elem.profitPercentage.toFixed(4)}%** | **$${elem.profit.toLocaleString()}**)`
+                    value: `Profit/Loss: **${elem.profitPercentage.toFixed(5)}%**\n__By share__: Paid: **$${util.prettyNum(elem.haspaid/elem.volume)}**, Now: **$${util.prettyNum(elem.worthTrade/elem.volume)}** (**$${(util.prettyNum(elem.profit/elem.volume))}**)\n__All__: Paid: **$${util.prettyNum(elem.haspaid)}**, Now: **$${util.prettyNum(elem.worthTrade)}** (**$${util.prettyNum(elem.profit)}**)\n`
                 };
                 embedList.push(arr);
             }
@@ -191,7 +195,7 @@ async function newTrade(msg){
         let list = util.getTradeList(msg);
 
         if(resp[0] === undefined){
-            msg.channel.send("Unknown market! Please search one with `sm!search <name/symbol>`");
+            msg.channel.send("Unknown market! Please search one with `sm!search <name/symbol>` (ex: *sm!search Apple* or *sm!search AAPL*)");
         }
         else if((status !== "buy" && status !== "sell") || isNaN(amount) || amount < 0){
             msg.channel.send("Syntax error! Please try again. `sm!newtrade <symbol> <buy/sell> <amount>`");
@@ -200,11 +204,11 @@ async function newTrade(msg){
         else{
             let money = util.getUserData(msg.author.id, "money").money;
             if( money - amount >= 0) {
-                if(list.length >= 20) {
+                if(list.length >= 15) {
                     msg.channel.send(util.createEmbedMessage(msg, "FF0000", "Payement refused!",
                         [{
                             name: `List full!`,
-                            value: `You have too many shares! (Max:20)`
+                            value: `You have too many shares! (Max:15)`
                         }]));
                 }
 
