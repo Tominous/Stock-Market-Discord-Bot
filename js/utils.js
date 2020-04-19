@@ -84,12 +84,14 @@ function prettyNum(num){
 
 
 async function getTradeInfo(symb, elem){
+    elem.haspaid = parseFloat(elem.haspaid);
     let resp = await fmp.stock(symb).quote();
     let worthTrade = resp[0].price * elem.volume;
     let profit = worthTrade - elem.haspaid;
 
     if (elem.status === "sell") {
         profit *= -1;
+        worthTrade = profit + elem.haspaid;
     }
 
     let percentage = (profit / resp[0].price) * 100;

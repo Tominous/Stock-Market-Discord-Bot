@@ -161,13 +161,13 @@ async function closeTrade(msg){
         else{
             let trade =  util.getTradeList(msg, id);
             trade = await util.getTradeInfo(trade.symbol, trade);
-            util.updateMoney(msg, msg.author.id, trade.profit);
+            util.updateMoney(msg, msg.author.id, trade.worthTrade);
 
             let earnedLost = (trade.profit > 0) ? ["earned", "56C114"] : ["lost", "FF0000"];
             msg.channel.send(util.createEmbedMessage(msg, earnedLost[1],"Trade closed",
                 [{
                 name: `Trade n°**${id}** closed.`,
-                value: `You have ${earnedLost[0]} **$${util.prettyNum(Math.abs(trade.profit))}**`
+                value: `You have earned **$${util.prettyNum(trade.worthTrade)}**`
             }]));
 
             showBalance(msg);
@@ -186,7 +186,10 @@ async function newTrade(msg){
         let resp = await fmp.stock(symb).quote();
         let list = util.getTradeList(msg);
 
-        if(resp === undefined || (status !== "buy" && status !== "sell") || isNaN(amount) || amount < 0){
+        if(resp[0] === undefined){
+            msg.channel.send("Unknown market! Please search one with `sm!search <name/symbol>`");
+        }
+        else if((status !== "buy" && status !== "sell") || isNaN(amount) || amount < 0){
             msg.channel.send("Syntax error! Please try again. `sm!newtrade <symbol> <buy/sell> <amount>`");
         }
 
