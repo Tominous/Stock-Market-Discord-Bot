@@ -1,6 +1,6 @@
 # Stock market bot
 A bot to "play" with the stock market by using fake money.
-The data is provided by [financialmodelingprep.com](financialmodelingprep.com) and the library [financialmodelingprep](https://github.com/patelneel55/financialmodelingprep).
+The data is provided by [financialmodelingprep.com](financialmodelingprep.com) through the library [financialmodelingprep](https://github.com/patelneel55/financialmodelingprep).
 
 ## Node.js dependencies
 - `discord.js`
