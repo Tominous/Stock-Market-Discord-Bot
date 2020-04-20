@@ -146,6 +146,18 @@ function setRightNumFormat(num){
     return (Math.abs(num) <= 10 && num !== 0) ? num.toFixed(5) : prettyNum(num);
 }
 
+function sendMsg(msg, sec, func, set){
+    if(set.has(msg.author.id)) {
+        msg.channel.send(`Please wait ${sec} seconds before using another command!`);
+    }
+    else {
+        func(msg);
+        set.add(msg.author.id);
+        setTimeout(() => set.delete(msg.author.id), sec * 1000);
+    }
+}
+
+
 module.exports = {
     getUserData : getUserData,
     isAccountCreated : isAccountCreated,
@@ -155,5 +167,6 @@ module.exports = {
     prettyNum : prettyNum,
     getTradeInfo : getTradeInfo,
     setRightNumFormat : setRightNumFormat,
-    updateMoney : updateMoney
+    updateMoney : updateMoney,
+    sendMsg : sendMsg
 };

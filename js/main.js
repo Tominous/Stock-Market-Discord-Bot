@@ -1,6 +1,8 @@
 const Discord = require("discord.js");
 const auth = require('../auth.json');
 const cmd = require ('./commands.js');
+const util = require ('./utils.js')
+const coolDownSet = new Set();
 
 const client = new Discord.Client();
 
@@ -35,41 +37,41 @@ client.on("message", msg => {
             switch (sMsg[0]) {
                 // Basics
                 case "sm!init":
-                    cmd.initializeUser(msg);
+                    util.sendMsg(msg, 2, cmd.initializeUser, coolDownSet);
                     break;
 
                 case "sm!help":
-                    cmd.showHelp(msg);
+                    util.sendMsg(msg, 2, cmd.showHelp, coolDownSet);
                     break;
 
                 // trades manipulation
                 case "sm!newtrade":
-                    cmd.newTrade(msg);
+                    util.sendMsg(msg, 2, cmd.newTrade, coolDownSet);
                     break;
 
                 case "sm!closetrade":
-                    cmd.closeTrade(msg);
+                    util.sendMsg(msg, 2, cmd.closeTrade, coolDownSet);
                     break;
 
                 case "sm!search":
-                    cmd.searchMarket(msg);
+                    util.sendMsg(msg, 2, cmd.searchMarket, coolDownSet);
                     break;
 
                 case "sm!show":
-                    cmd.showMarket(msg);
+                    util.sendMsg(msg, 2, cmd.showMarket, coolDownSet);
                     break;
 
                 // Player info
                 case "sm!balance":
-                    cmd.showBalance(msg);
+                    util.sendMsg(msg, 2, cmd.showBalance, coolDownSet);
                     break;
 
                 case "sm!list":
-                    cmd.showList(msg)
+                    util.sendMsg(msg, 2, cmd.showList, coolDownSet);
                     break;
 
                 case "sm!daily":
-                    cmd.getDaily(msg);
+                    util.sendMsg(msg, 2, cmd.getDaily, coolDownSet);
                     break;
             }
         }
@@ -77,6 +79,7 @@ client.on("message", msg => {
     catch (e) {
         msg.channel.send("Something went terribly wrong! Please send the following text to Cryx#6546\n" +
             "```\n"+e+"\n```");
+        console.error(e);
     }
 });
 
