@@ -32,7 +32,6 @@ client.on("message", msg => {
 
     try {
         if(msg.content.startsWith("sm!")){
-            console.log(msg.content);
             msg.content = msg.content.toLowerCase();
             switch (sMsg[0]) {
                 // Basics
