@@ -17,11 +17,13 @@ function initializeUser(msg){
 }
 
 // sm!balance
-function showBalance(msg){
-    if(util.isAccountCreated(msg.author.id, true, msg)) {
+async function showBalance(msg){
+    let userid = util.getUserId(msg, msg.content);
+    let displayName = (await msg.guild.members.fetch(userid)).displayName;
+    if(util.isAccountCreated(userid, true, msg)) {
         let arr = {
-            name: "Amount",
-            value: `You have now **$${util.prettyNum(util.getUserData(msg.author.id, "money").money)}**`
+            name: `Balance of ${displayName}:`,
+            value: `**$${util.prettyNum(util.getUserData(userid, "money").money)}**`
             };
 
         msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Balance", [arr]));
@@ -133,12 +135,21 @@ function getDaily(msg){
 
 //sm!list
 async function showList(msg){
-    if(util.isAccountCreated(msg.author.id, true, msg)) {
-        let list = util.getTradeList(msg);
+    let userid = util.getUserId(msg, msg.content);
+    let displayName = (await msg.guild.members.fetch(userid)).displayName;
+
+    if(util.isAccountCreated(userid, true, msg)) {
+        let list = util.getTradeList(msg, userid);
         let embedList = [];
 
         if (list.length <= 0) {
-            msg.channel.send("You don't own any share!");
+            if(userid !== msg.author.id){
+                msg.channel.send(`${displayName} doesn't own any share!`);
+            }
+            else{
+                msg.channel.send("You don't own any share!");
+            }
+
         } else {
 
             let tradeInfoList = await util.getTradeInfo(list, msg);
@@ -149,7 +160,7 @@ async function showList(msg){
                 };
                 embedList.push(arr);
             }
-            msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Your trades", embedList));
+            msg.channel.send(util.createEmbedMessage(msg, "008CFF", `Trades of ${displayName}`, embedList));
         }
     }
 }
@@ -159,13 +170,13 @@ async function closeTrade(msg){
     if(util.isAccountCreated(msg.author.id, true, msg)){
         let id = parseInt(msg.content.split(" ")[1]);
 
-        if(util.getTradeList(msg, id) === undefined || isNaN(id)){
+        if(util.getTradeList(msg, msg.author.id, id) === undefined || isNaN(id)){
             msg.channel.send(`You don't have any trade with ID: **${id}** \nType sm!list to see your trades and IDs`);
         }
 
         else{
-            let trade =  util.getTradeList(msg, id);
-            trade = await util.getTradeInfo([trade], msg);
+            let trade =  util.getTradeList(msg, msg.author.id, id);
+            trade = await util.getTradeInfo([trade], msg, msg.author.id);
 
             util.updateMoney(msg, msg.author.id, trade[0].worthTrade);
 
@@ -190,7 +201,7 @@ async function newTrade(msg){
         let symb = msg.content.split(" ")[2];
         let amount = msg.content.split(" ")[3];
         let resp = await fmp.stock(symb).quote();
-        let list = util.getTradeList(msg);
+        let list = util.getTradeList(msg, msg.author.id);
 
         if(resp[0] === undefined){
             msg.channel.send("Unknown market! Please search one with `sm!search <name/symbol>` (ex: *sm!search Apple* or *sm!search AAPL*)");

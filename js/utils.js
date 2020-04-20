@@ -26,8 +26,8 @@ function isAccountCreated(userId, autoMessage = false, msg){
 }
 
 
-function getTradeList(msg, value = null){
-    let list = getUserData(msg.author.id, "trades").trades;
+function getTradeList(msg, userId = msg.author.id, value = null){
+    let list = getUserData(userId, "trades").trades;
 
     list = JSON.parse(list).trades;
     return (Number.isInteger(value)) ? list.find(elem => elem.id === value) : list;
@@ -210,6 +210,18 @@ async function getChartFiveMinutes(tag, limit){
 
 }
 
+function getUserId(msg, txt){
+    txt = txt.split(" ")[1];
+    if(txt !== undefined) {
+
+        let mark = txt.substring(0, 3).concat(txt.substring(txt.length - 1, txt.length));
+        if(mark === "<@!>"){
+            return txt.substring(3, txt.length - 1)
+        }
+    }
+    return msg.author.id;
+}
+
 module.exports = {
     getUserData : getUserData,
     isAccountCreated : isAccountCreated,
@@ -222,4 +234,5 @@ module.exports = {
     updateMoney : updateMoney,
     sendMsg : sendMsg,
     getChartFiveMinutes : getChartFiveMinutes,
+    getUserId : getUserId,
 };
