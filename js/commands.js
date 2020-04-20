@@ -57,7 +57,7 @@ async function searchMarket(msg){
     let tag = msg.content.split('sm!search ')[1];
 
     let response = await fmp.search(tag, 10);
-    if(response.length <= 0){
+    if(response === undefined || response.length <= 0){
         text = "Nothing was found, try to shorten the symbol or the name (as removing 'USD' from it if present) and try again.";
         msg.channel.send(text);
     }
@@ -145,7 +145,7 @@ async function showList(msg){
             for (const elem of tradeInfoList) {
                 let arr = {
                     name: `${elem.status.toUpperCase()} - ${elem.name} - ${elem.symbol.toUpperCase()} (ID: ${elem.id})`,
-                    value: `Profit/Loss: **${util.setRightNumFormat(elem.profitPercentage)}%**\n__By share__: Paid: **$${util.setRightNumFormat(elem.haspaid/elem.volume)}**, Now: **$${util.setRightNumFormat(elem.worthTrade/elem.volume)}** (**$${(util.setRightNumFormat(elem.profit/elem.volume))}**)\n__Your trade__: Paid: **$${util.setRightNumFormat(elem.haspaid)}**, Now: **$${util.setRightNumFormat(elem.worthTrade)}** (**$${util.setRightNumFormat(elem.profit)}**)\n`
+                    value: `Change: **${util.setRightNumFormat(elem.profitPercentage)}%**\n__By share__: Paid: **$${util.setRightNumFormat(elem.haspaid/elem.volume)}**, Now: **$${util.setRightNumFormat(elem.shownWorthTrade/elem.volume)}** (Profit: **$${(util.setRightNumFormat((elem.profit/elem.volume)))}**)\n__Your trade__: Paid: **$${util.setRightNumFormat(elem.haspaid)}**, Now: **$${util.setRightNumFormat(elem.shownWorthTrade)}** (Profit: **$${util.setRightNumFormat(elem.profit)}**)\n`
                 };
                 embedList.push(arr);
             }

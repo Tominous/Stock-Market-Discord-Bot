@@ -1,6 +1,10 @@
 const sql = require("better-sqlite3");
 const dbData = sql("./db/userdata.db");
 const fmp = require("financialmodelingprep");
+const axios = require("axios");
+const auth = require('../auth.json');
+const plotly = require('plotly')(auth.usernameplot, auth.tokenplot);
+const fs = require('fs');
 
 
 function getUserData(userId, value = ["*"]){
@@ -88,32 +92,36 @@ async function getTradeInfo(list, msg){
 
     for (const elem of list) {arrSymb.push(elem.symbol)}
     let resp = await fmp.stock(arrSymb).quote();
-    list.forEach(elem => {
-        try{
-            let market = resp.find(e => elem.symbol === e.symbol.toLowerCase())
-            arrTrade.push(
-                {
-                    id: elem.id,
-                    name: market.name,
-                    symbol: elem.symbol,
-                    volume: elem.volume,
-                    status: elem.status,
-                    haspaid: parseFloat(elem.haspaid),
-                    price: market.price,
-                }
-            )
-        }
-        catch (e) {
-            msg.channel.send("API Error! Please try later.\n```\n"+e+"\n```");
-            console.error(e);
-        }
-    });
+    try{
+        list.forEach(elem => {
+                let market = resp.find(e => elem.symbol === e.symbol.toLowerCase())
+                arrTrade.push(
+                    {
+                        id: elem.id,
+                        name: market.name,
+                        symbol: elem.symbol,
+                        volume: elem.volume,
+                        status: elem.status,
+                        haspaid: parseFloat(elem.haspaid),
+                        price: market.price,
+                    }
+                )
+
+            }
+        );
+    }
+    catch (e) {
+        msg.channel.send("API Error! Please try later.\n```\n"+e+"\n```");
+        console.error(e);
+    }
 
     let arrResult = [];
 
     for(let m of arrTrade){
         let worthTrade = m.price * m.volume;
         let profit = worthTrade - m.haspaid;
+        let shownWorthTrade = worthTrade;
+        let shownProfit = profit;
 
         if (m.status === "sell") {
             profit *= -1;
@@ -132,7 +140,9 @@ async function getTradeInfo(list, msg){
                 haspaid : m.haspaid,
                 worthTrade: worthTrade,
                 profit : profit,
-                profitPercentage : percentage
+                profitPercentage : percentage,
+                shownProfit : shownProfit,
+                shownWorthTrade : shownWorthTrade
             }
         )
     }
@@ -164,6 +174,42 @@ function sendMsg(msg, sec, func, set){
 }
 
 
+async function getChartFiveMinutes(tag, limit){
+    let arr = await axios.get(`https://financialmodelingprep.com/api/v3/historical-chart/5min/${tag}`);
+    let date = [];
+    let close = [];
+
+    let i = 0;
+    for(const elem of arr.data){
+        if(i >= limit){
+            break;
+        }
+        date.push(elem.date.split(" ")[1]);
+        close.push(elem.close);
+        i++;
+    }
+
+    let data = [{
+        x: date,
+        y: close,
+        type: "scatter"
+    }];
+
+    let opt = {
+        format: 'png',
+        width: '1000',
+        height: '500'
+    }
+
+    let layout = {fileopt : "overwrite", filename : "simple-node-example"};
+    plotly.getImage(data, layout, function(err, imageStream){
+        if (err) return console.log(err);
+        let filestream = fs.createWriteStream('1.png');
+        imageStream.pipe(filestream);
+    })
+
+}
+
 module.exports = {
     getUserData : getUserData,
     isAccountCreated : isAccountCreated,
@@ -174,5 +220,6 @@ module.exports = {
     getTradeInfo : getTradeInfo,
     setRightNumFormat : setRightNumFormat,
     updateMoney : updateMoney,
-    sendMsg : sendMsg
+    sendMsg : sendMsg,
+    getChartFiveMinutes : getChartFiveMinutes,
 };

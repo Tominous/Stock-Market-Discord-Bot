@@ -1,9 +1,8 @@
 const Discord = require("discord.js");
 const auth = require('../auth.json');
 const cmd = require ('./commands.js');
-const util = require ('./utils.js')
+const util = require ('./utils.js');
 const coolDownSet = new Set();
-
 const client = new Discord.Client();
 
 client.login(auth.token);
@@ -33,6 +32,7 @@ client.on("message", msg => {
 
     try {
         if(msg.content.startsWith("sm!")){
+            console.log(msg.content);
             msg.content = msg.content.toLowerCase();
             switch (sMsg[0]) {
                 // Basics
