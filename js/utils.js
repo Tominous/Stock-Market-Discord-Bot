@@ -82,25 +82,31 @@ function prettyNum(num){
     return parseFloat(num.toFixed(2)).toLocaleString();
 }
 
-async function getTradeInfo(list){
+async function getTradeInfo(list, msg){
     let arrSymb = [];
     let arrTrade = [];
 
     for (const elem of list) {arrSymb.push(elem.symbol)}
     let resp = await fmp.stock(arrSymb).quote();
     list.forEach(elem => {
-        let market = resp.find(e => elem.symbol === e.symbol.toLowerCase())
-        arrTrade.push(
-            {
-                id: elem.id,
-                name: market.name,
-                symbol: elem.symbol,
-                volume: elem.volume,
-                status: elem.status,
-                haspaid: parseFloat(elem.haspaid),
-                price: market.price,
-            }
-        )
+        try{
+            let market = resp.find(e => elem.symbol === e.symbol.toLowerCase())
+            arrTrade.push(
+                {
+                    id: elem.id,
+                    name: market.name,
+                    symbol: elem.symbol,
+                    volume: elem.volume,
+                    status: elem.status,
+                    haspaid: parseFloat(elem.haspaid),
+                    price: market.price,
+                }
+            )
+        }
+        catch (e) {
+            msg.channel.send("API Error! Please try later.\n```\n"+e+"\n```");
+            console.error(e);
+        }
     });
 
     let arrResult = [];

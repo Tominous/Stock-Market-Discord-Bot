@@ -141,7 +141,7 @@ async function showList(msg){
             msg.channel.send("You don't own any share!");
         } else {
 
-            let tradeInfoList = await util.getTradeInfo(list);
+            let tradeInfoList = await util.getTradeInfo(list, msg);
             for (const elem of tradeInfoList) {
                 let arr = {
                     name: `${elem.status.toUpperCase()} - ${elem.name} - ${elem.symbol.toUpperCase()} (ID: ${elem.id})`,
@@ -165,7 +165,7 @@ async function closeTrade(msg){
 
         else{
             let trade =  util.getTradeList(msg, id);
-            trade = await util.getTradeInfo([trade]);
+            trade = await util.getTradeInfo([trade], msg);
 
             util.updateMoney(msg, msg.author.id, trade[0].worthTrade);
 
