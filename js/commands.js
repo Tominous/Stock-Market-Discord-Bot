@@ -109,8 +109,6 @@ function getDaily(msg){
         if(delay < 0){
             let newBalance = data.money + 10000;
             let newDailyTime = dateNow + 86400;
-            console.log(dateNow);
-            console.log(newDailyTime);
 
             dbData.prepare("UPDATE data SET money = ?, dailytime = ? WHERE id = ?").run(newBalance, newDailyTime,  msg.author.id,);
             msg.channel.send(util.createEmbedMessage(msg, "56C114", "Your daily reward!", [{
