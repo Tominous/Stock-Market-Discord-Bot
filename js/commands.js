@@ -19,7 +19,8 @@ function initializeUser(msg){
 // sm!balance
 async function showBalance(msg){
     let userid = util.getUserId(msg, msg.content);
-    let displayName = (await msg.guild.members.fetch(userid)).displayName;
+    let displayName = msg.guild !== null ? (await msg.guild.members.fetch(userid)).displayName : msg.author.username;
+
     if(util.isAccountCreated(userid, true, msg)) {
         let arr = {
             name: `Balance of ${displayName}:`,
@@ -136,7 +137,7 @@ function getDaily(msg){
 //sm!list
 async function showList(msg){
     let userid = util.getUserId(msg, msg.content);
-    let displayName = (await msg.guild.members.fetch(userid)).displayName;
+    let displayName = msg.guild !== null ? (await msg.guild.members.fetch(userid)).displayName : msg.author.username;
 
     if(util.isAccountCreated(userid, true, msg)) {
         let list = util.getTradeList(msg, userid);
