@@ -86,6 +86,7 @@ function prettyNum(num){
     return parseFloat(num.toFixed(2)).toLocaleString();
 }
 
+
 async function getTradeInfo(list, msg){
     let arrSymb = [];
     let arrTrade = [];
@@ -106,7 +107,6 @@ async function getTradeInfo(list, msg){
                         price: market.price,
                     }
                 )
-
             }
         );
     }
@@ -116,7 +116,6 @@ async function getTradeInfo(list, msg){
     }
 
     let arrResult = [];
-
     for(let m of arrTrade){
         let worthTrade = m.price * m.volume;
         let profit = worthTrade - m.haspaid;
@@ -161,6 +160,7 @@ function updateMoney(msg, userID, num){
 function setRightNumFormat(num){
     return (Math.abs(num) <= 10 && num !== 0) ? num.toFixed(5) : prettyNum(num);
 }
+
 
 function sendMsg(msg, sec, func, set){
     if(set.has(msg.author.id)) {
@@ -207,8 +207,8 @@ async function getChartFiveMinutes(tag, limit){
         let filestream = fs.createWriteStream('1.png');
         imageStream.pipe(filestream);
     })
-
 }
+
 
 function getUserId(msg, txt){
     txt = txt.split(" ")[1];
@@ -221,6 +221,7 @@ function getUserId(msg, txt){
     }
     return msg.author.id;
 }
+
 
 module.exports = {
     getUserData : getUserData,

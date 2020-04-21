@@ -87,20 +87,19 @@ async function searchMarket(msg){
 function showMarket(msg){
     let tag = msg.content.split(' ')[1];
 
-        fmp.stock(tag).quote().then(resp => {
-            try {
-                resp = resp[0];
-                msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [{
-                    name: `Information for ${resp.name} (${resp.symbol}): `,
-                    value : `Price: **$${resp.price}** (Change: **${resp.changesPercentage}%** => **$${resp.change}**) \n \nSome prices may be different due to sources or delays.\nIf prices do not fluctuate, markets are likely closed.`
-                }], `See the chart [here](https://tradingview.com/chart/?symbol=${resp.symbol})`));
-            }
-            catch (e) {
-                msg.channel.send("Nothing was found. Please try again with an another symbol.");
-            }
-        });
+    fmp.stock(tag).quote().then(resp => {
+        try {
+            resp = resp[0];
+            msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [{
+                name: `Information for ${resp.name} (${resp.symbol}): `,
+                value : `Price: **$${resp.price}** (Change: **${resp.changesPercentage}%** => **$${resp.change}**) \n \nSome prices may be different due to sources or delays.\nIf prices do not fluctuate, markets are likely closed.`
+            }], `See the chart [here](https://tradingview.com/chart/?symbol=${resp.symbol})`));
+        }
+        catch (e) {
+            msg.channel.send("Nothing was found. Please try again with an another symbol.");
+        }
+    });
 }
-
 
 //sm!daily
 function getDaily(msg){
@@ -245,6 +244,7 @@ async function newTrade(msg){
         }
     }
 }
+
 
 module.exports = {
     searchMarket : searchMarket,
