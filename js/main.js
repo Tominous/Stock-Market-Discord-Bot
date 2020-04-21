@@ -7,13 +7,13 @@ const client = new Discord.Client();
 
 client.login(auth.token);
 
-try {
-    client.on("ready", () => {
-        console.log(`Logged ! ${client.user.tag}`);
-    });
+client.on("ready", () => {
+    console.log(`Logged ! ${client.user.tag}`);
+});
 
 
-    client.on("guildCreate", guild => {
+client.on("guildCreate", guild => {
+    try {
         let defChannel = "";
         Array.from(guild.channels.cache.values()).forEach((channel) => {
 
@@ -25,65 +25,64 @@ try {
                 }
             }
         });
-    });
+        console.log(`${Date.now()} - JOINED ${guild.id} - ${guild.name}`)
+    }
+    catch (e) {console.log(e);}
+});
 
 
-    client.on("message", msg => {
-        let sMsg = msg.content.split(' ');
+client.on("message", msg => {
+    let sMsg = msg.content.split(' ');
 
+    if (msg.content.startsWith("sm!")) {
         try {
-            if (msg.content.startsWith("sm!")) {
-                msg.content = msg.content.toLowerCase();
-                console.log(`${Date.now()} ${msg.content}`);
-                switch (sMsg[0]) {
-                    // Basics
-                    case "sm!init":
-                        util.sendMsg(msg, 2, cmd.initializeUser, coolDownSet);
-                        break;
+            msg.content = msg.content.toLowerCase();
+            console.log(`${Date.now()} - ${msg.content}`);
+            switch (sMsg[0]) {
+                // Basics
+                case "sm!init":
+                    util.sendMsg(msg, 2, cmd.initializeUser, coolDownSet);
+                    break;
 
-                    case "sm!help":
-                        util.sendMsg(msg, 2, cmd.showHelp, coolDownSet);
-                        break;
+                case "sm!help":
+                    util.sendMsg(msg, 2, cmd.showHelp, coolDownSet);
+                    break;
 
-                    // trades manipulation
-                    case "sm!newtrade":
-                        util.sendMsg(msg, 2, cmd.newTrade, coolDownSet);
-                        break;
+                // trades manipulation
+                case "sm!newtrade":
+                    util.sendMsg(msg, 2, cmd.newTrade, coolDownSet);
+                    break;
 
-                    case "sm!closetrade":
-                        util.sendMsg(msg, 2, cmd.closeTrade, coolDownSet);
-                        break;
+                case "sm!closetrade":
+                    util.sendMsg(msg, 2, cmd.closeTrade, coolDownSet);
+                    break;
 
-                    case "sm!search":
-                        util.sendMsg(msg, 2, cmd.searchMarket, coolDownSet);
-                        break;
+                case "sm!search":
+                    util.sendMsg(msg, 2, cmd.searchMarket, coolDownSet);
+                    break;
 
-                    case "sm!show":
-                        util.sendMsg(msg, 2, cmd.showMarket, coolDownSet);
-                        break;
+                case "sm!show":
+                    util.sendMsg(msg, 2, cmd.showMarket, coolDownSet);
+                    break;
 
-                    // Player info
-                    case "sm!balance":
-                        util.sendMsg(msg, 2, cmd.showBalance, coolDownSet);
-                        break;
+                // Player info
+                case "sm!balance":
+                    util.sendMsg(msg, 2, cmd.showBalance, coolDownSet);
+                    break;
 
-                    case "sm!list":
-                        util.sendMsg(msg, 2, cmd.showList, coolDownSet);
-                        break;
+                case "sm!list":
+                    util.sendMsg(msg, 2, cmd.showList, coolDownSet);
+                    break;
 
-                    case "sm!daily":
-                        util.sendMsg(msg, 2, cmd.getDaily, coolDownSet);
-                        break;
-                }
+                case "sm!daily":
+                    util.sendMsg(msg, 2, cmd.getDaily, coolDownSet);
+                    break;
             }
-        } catch (e) {
+        }
+        catch (e) {
             msg.channel.send("Something went terribly wrong! Please send the following text to Cryx#6546\n" +
                 "```\n" + e + "\n```");
             console.log(e);
         }
-    });
-}
-catch (e) {
-    console.log(e);
-}
-
+    }
+});
