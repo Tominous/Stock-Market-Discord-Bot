@@ -19,7 +19,7 @@ client.on("guildCreate", guild => {
 
             if (channel.type === "text" && defChannel === "") {
 
-                if (channel.permissionsFor(guild.me).has("SEND_MESSAGES")) {
+                if (channel.permissionsFor(guild.me).has("SEND_MESSAGES") && channel.permissionsFor(guild.me).has("VIEW_CHANNEL")){
                     defChannel = channel;
                     channel.send("Hey! To get started type `sm!help` !");
                 }

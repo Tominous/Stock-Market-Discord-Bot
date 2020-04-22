@@ -206,7 +206,7 @@ async function newTrade(msg){
         if(resp[0] === undefined || resp[0].price === null){
             msg.channel.send("Unknown market! Please search one with `sm!search <name/symbol>` (ex: *sm!search Apple* or *sm!search AAPL*)");
         }
-        else if((status !== "buy" && status !== "sell") || isNaN(amount) || amount < 0){
+        else if((status !== "buy" && status !== "sell") || isNaN(amount) || amount === "" || amount < 0){
             msg.channel.send("Syntax error! Please try again. `sm!newtrade <buy/sell> <symbol> <amount>`");
         }
 
