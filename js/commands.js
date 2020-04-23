@@ -37,19 +37,19 @@ function showHelp(msg){
         [
             {
                 name: "*Basics*",
-                value: "`help` You're here \n`init` The command to get started \n\n"
+                value: "`help` You're here \n`init` The command to get started \n`ping` To see the latency between you, the bot and the API\n"
             },
             {
                 name: "*Player account*",
-                value: "`balance` To admire your wealth \n`list` Your current trades \n`daily` To get your daily reward\n\n"
+                value: "`balance` / `balance @User` To admire your / user's wealth\n`list` / `list @User` Your / user's current trades\n`daily` To get your daily reward\n\n"
             },
             {
                 name: "*Stock Market* ",
-                value: "`search <name/symbol>` To search stock markets\n`show <symbol>` To get details about a particular market\n`newtrade <buy/sell> <symbol> <price>` To trade stock on the market(ex: *sm!newtrade buy AAPL 5000*)\n==>`buy` if you think the stock will go up, \n==>`sell` if you think the stock will go down.\n`closetrade <ID>`(ex: *sm!closetrade 0*) Close a trade (the ID can be found with the `list` command). Give to you the value of your trade."
+                value: "`search <name/symbol>` To search stock markets (ex: *sm!search Apple or sm!search AAPL*)\n`show <symbol>` To get details about a particular market (ex: *sm!show AAPL*)\n`newtrade <buy/sell> <symbol> <price>` To trade stocks on the market(ex: *sm!newtrade buy AAPL 5000*)\n==>`buy` if you think the stock will go up, \n==>`sell` if you think the stock will go down.\n`closetrade <ID>` (ex: *sm!closetrade 0*) Close a trade (the ID can be found with the `list` command). Give to you the final value of your trade."
             },
             {
                 name: "*Okay, how do I play?* ",
-                value: "First, you are going to look for a market. Type `sm!search <name/symbol>` (ex: *sm!search Apple or sm!search AAPL*).\nThen type `sm!show <symbol>` (ex: *sm!show AAPL*) if you want more details about the stock.\nNow it's time to trade! Follow the instructions above for newtrade and closetrade!\nHappy trading!",
+                value: "First, you are going to look for a market. Type `sm!search <name/symbol>`.\nThen type `sm!show <symbol>` if you want more details about it.\nNow it's time to trade! Follow the instructions above for `newtrade` and `closetrade`!\nHappy trading!",
             }
         ]
     ));
@@ -245,6 +245,24 @@ async function newTrade(msg){
     }
 }
 
+async function showPing(msg){
+    let start = Date.now();
+    let timeMsg = start - msg.createdTimestamp;
+
+    start = Date.now()
+    await fmp.stock("APPL").quote();
+    let timeAPI = Date.now() - start;
+
+    console.log(`Bot: ${timeMsg}ms, API: ${timeAPI}ms`)
+
+    msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Pong!", [
+        {
+            name: `Results:`,
+            value: `Bot: **${timeMsg}ms**\nStock Market - API: **${timeAPI}ms**`
+        }
+    ]));
+}
+
 
 module.exports = {
     searchMarket : searchMarket,
@@ -255,5 +273,6 @@ module.exports = {
     showList : showList,
     closeTrade : closeTrade,
     newTrade : newTrade,
-    showHelp : showHelp
+    showHelp : showHelp,
+    showPing : showPing
 };

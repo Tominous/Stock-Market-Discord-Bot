@@ -48,6 +48,10 @@ client.on("message", msg => {
                     util.sendMsg(msg, 2, cmd.showHelp, coolDownSet);
                     break;
 
+                case "sm!ping":
+                    util.sendMsg(msg, 2, cmd.showPing, coolDownSet);
+                    break;
+
                 // trades manipulation
                 case "sm!newtrade":
                     util.sendMsg(msg, 2, cmd.newTrade, coolDownSet);
