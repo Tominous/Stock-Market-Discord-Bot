@@ -66,10 +66,6 @@ function createEmbedMessage(msg, color, title, content = [], desc = null){
             color: color,
             description: desc,
 
-            footer: {
-                text: "Created by Cryx#6546"
-            },
-
             author: {
                 name: title
             },
