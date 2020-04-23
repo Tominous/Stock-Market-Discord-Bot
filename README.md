@@ -8,7 +8,7 @@ List available [here](https://github.com/cryx3001/Stock-Market-Discord-Bot/netwo
 ## Available commands
 Prefix: `sm!`
 ### Basics
-- `help` You're here
+- `help` Gives you the help you need!
 - `init` The command to get started
 - `ping` To see the latency between you, the bot and the API
 
