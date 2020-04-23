@@ -52,6 +52,10 @@ client.on("message", msg => {
                     util.sendMsg(msg, 2, cmd.showPing, coolDownSet);
                     break;
 
+                case "sm!about":
+                    util.sendMsg(msg, 2, cmd.showAbout, coolDownSet, args = client.guilds.cache.size);
+                    break;
+
                 // trades manipulation
                 case "sm!newtrade":
                     util.sendMsg(msg, 2, cmd.newTrade, coolDownSet);

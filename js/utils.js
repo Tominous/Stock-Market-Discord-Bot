@@ -158,12 +158,12 @@ function setRightNumFormat(num){
 }
 
 
-function sendMsg(msg, sec, func, set){
+function sendMsg(msg, sec, func, set, args = undefined){
     if(set.has(msg.author.id)) {
         msg.channel.send(`Please wait ${sec} seconds before using another command!`);
     }
     else {
-        func(msg);
+        func(msg, args);
         set.add(msg.author.id);
         setTimeout(() => set.delete(msg.author.id), sec * 1000);
     }

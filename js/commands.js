@@ -37,7 +37,7 @@ function showHelp(msg){
         [
             {
                 name: "*Basics*",
-                value: "`help` You're here \n`init` The command to get started \n`ping` To see the latency between you, the bot and the API\n"
+                value: "`help` You're here \n`init` The command to get started \n`ping` To see the latency between you, the bot and the API\n`about` About the bot\n"
             },
             {
                 name: "*Player account*",
@@ -245,6 +245,7 @@ async function newTrade(msg){
     }
 }
 
+//sm!ping
 async function showPing(msg){
     let start = Date.now();
     let timeMsg = start - msg.createdTimestamp;
@@ -263,6 +264,29 @@ async function showPing(msg){
     ]));
 }
 
+//sm!about
+function showAbout(msg, num){
+    let dbStats = dbData.prepare("SELECT SUM(money), COUNT(*) FROM data").get();
+    let totalMoney = util.prettyNum(dbStats["SUM(money)"]);
+    let totalMembers = util.prettyNum(dbStats["COUNT(*)"]);
+
+    let arr = [
+        {
+            name: `Stats:`,
+            value: `- Working with **${totalMembers}** traders, owning **$${totalMoney}** in their balance!\n- Doing my business on **${num}** servers!`
+        },
+        {
+            name: `Need support?`,
+            value: `https://discord.gg/K3tUKAV`
+        },
+        {
+            name: `Source code:`,
+            value: `https://github.com/cryx3001/Stock-Market-Discord-Bot`
+        }
+    ];
+    msg.channel.send(util.createEmbedMessage(msg, "008CFF", "About the bot", [arr]));
+}
+
 
 module.exports = {
     searchMarket : searchMarket,
@@ -274,5 +298,6 @@ module.exports = {
     closeTrade : closeTrade,
     newTrade : newTrade,
     showHelp : showHelp,
-    showPing : showPing
+    showPing : showPing,
+    showAbout : showAbout,
 };
