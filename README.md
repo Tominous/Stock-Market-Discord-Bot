@@ -11,6 +11,7 @@ Prefix: `sm!`
 - `help` Gives you the help you need!
 - `init` The command to get started
 - `ping` To see the latency between you, the bot and the API
+- `about` About the bot
 
 ### Player account
 - `balance` / `balance @User` To admire your / user's wealth
