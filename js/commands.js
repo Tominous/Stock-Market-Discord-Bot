@@ -49,7 +49,7 @@ function showHelp(msg){
             },
             {
                 name: "*Okay, how do I play?* ",
-                value: "First, you are going to look for a market. Type `sm!search <name/symbol>`.\nThen type `sm!show <symbol>` if you want more details about it.\nNow it's time to trade! Follow the instructions above for `newtrade` and `closetrade`!\nHappy trading!",
+                value: "First, you are going to look for a market. Type `sm!search <name/symbol>`.\nThen type `sm!show <symbol>` if you want more details about it.\nNow it's time to trade! Follow the instructions above for `newtrade` and `closetrade`!\n***The symbol is not the name, it is the word between ( ) next to the name when you type sm!search (Ex: TSLA, AAPL, MSFT...) ***\nHappy trading!",
             }
         ]
     ));
