@@ -24,7 +24,7 @@ async function showBalance(msg){
     if(util.isAccountCreated(userid, true, msg)) {
         let arr = {
             name: `Balance of ${displayName}:`,
-            value: `**$${util.prettyNum(util.getUserData(userid, "money").money)}**`
+            value: `**$${util.setRightNumFormat(util.getUserData(userid, "money").money)}**`
             };
 
         msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Balance", [arr]));
@@ -135,23 +135,17 @@ function getDaily(msg){
 
 //sm!list
 async function showList(msg){
-    let displayName = msg.guild !== null ? (await msg.guild.members.fetch(util.getUserId(msg, msg.content))).displayName : msg.author.username;
-    let userid = displayName === msg.author.username ? msg.author.id : util.getUserId(msg, msg.content);
+    let displayName = (msg.guild !== null) ? (await msg.guild.members.fetch(util.getUserId(msg, msg.content))).displayName : msg.author.username;
+    let userid = (displayName === msg.author.username) ? msg.author.id : util.getUserId(msg, msg.content);
 
     if(util.isAccountCreated(userid, true, msg)) {
         let list = util.getTradeList(msg, userid);
         let embedList = [];
 
         if (list.length <= 0) {
-            if(userid !== msg.author.id){
-                msg.channel.send(`${displayName} doesn't own any share!`);
-            }
-            else{
-                msg.channel.send("You don't own any share!");
-            }
+            msg.channel.send((userid !== msg.author.id) ? `${displayName} doesn't own any share!` : "You don't own any share!" )
 
         } else {
-
             let tradeInfoList = await util.getTradeInfo(list, msg);
             for (const elem of tradeInfoList) {
                 let arr = {
@@ -267,13 +261,13 @@ async function showPing(msg){
 //sm!about
 function showAbout(msg, num){
     let dbStats = dbData.prepare("SELECT SUM(money), COUNT(*) FROM data").get();
-    let totalMoney = util.prettyNum(dbStats["SUM(money)"]);
-    let totalMembers = util.prettyNum(dbStats["COUNT(*)"]);
+    let totalMoney = util.setRightNumFormat(dbStats["SUM(money)"], false);
+    let totalMembers = util.setRightNumFormat(dbStats["COUNT(*)"], false);
 
     let arr = [
         {
             name: `Stats:`,
-            value: `- Working with **${totalMembers}** traders, owning **$${totalMoney}** in their balance!\n- Doing my business on **${num}** servers!`
+            value: `- Working with **${totalMembers}** traders, owning **$${totalMoney}** in their balance!\n- Doing my business on **${ util.setRightNumFormat(num, false)}** servers!`
         },
         {
             name: `Need support?`,

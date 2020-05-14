@@ -3,6 +3,7 @@ const auth = require('../auth.json');
 const cmd = require ('./commands.js');
 const util = require ('./utils.js');
 const coolDownSet = new Set();
+const coolDownDelay = 2;
 const client = new Discord.Client();
 
 client.login(auth.token);
@@ -11,21 +12,16 @@ client.on("ready", () => {
     console.log(`Logged ! ${client.user.tag}`);
 });
 
-
 client.on("guildCreate", guild => {
     try {
         let defChannel = "";
         Array.from(guild.channels.cache.values()).forEach((channel) => {
-
-            if (channel.type === "text" && defChannel === "") {
-
-                if (channel.permissionsFor(guild.me).has("SEND_MESSAGES") && channel.permissionsFor(guild.me).has("VIEW_CHANNEL")){
-                    defChannel = channel;
-                    channel.send("Hey! To get started type `sm!help` !");
-                }
+            if (channel.type === "text" && defChannel === "" && channel.permissionsFor(guild.me).has("SEND_MESSAGES") && channel.permissionsFor(guild.me).has("VIEW_CHANNEL")) {
+                defChannel = channel;
+                defChannel.send("Hey! To get started type `sm!help` !");
+                console.log(`JOINED ${guild.id} - ${guild.name}`)
             }
         });
-        console.log(`${Date.now()} - JOINED ${guild.id} - ${guild.name}`)
     }
     catch (e) {console.log(e);}
 });
@@ -33,59 +29,37 @@ client.on("guildCreate", guild => {
 
 client.on("message", msg => {
     let sMsg = msg.content.split(' ');
+    msg.content = msg.content.toLowerCase();
+
+    const commandsList = {
+        // Basics
+        "sm!init": {func: cmd.initializeUser},
+        "sm!help": {func: cmd.showHelp},
+        "sm!ping": {func: cmd.showPing},
+        "sm!about": {func: cmd.showAbout, args: client.guilds.cache.size},
+
+        // Trades manipulation
+        "sm!newtrade": {func: cmd.newTrade},
+        "sm!closetrade": {func: cmd.closeTrade},
+        "sm!search": {func: cmd.searchMarket},
+        "sm!show": {func: cmd.showMarket},
+
+        //Player info
+        "sm!balance": {func: cmd.showBalance},
+        "sm!list": {func: cmd.showList},
+        "sm!daily": {func: cmd.getDaily}
+    };
 
     if (msg.content.startsWith("sm!")) {
         try {
-            msg.content = msg.content.toLowerCase();
-            console.log(`${Date.now()} - ${msg.content}`);
-            switch (sMsg[0]) {
-                // Basics
-                case "sm!init":
-                    util.sendMsg(msg, 2, cmd.initializeUser, coolDownSet);
-                    break;
+            console.log(`${msg.author.id} - ${msg.content}`);
 
-                case "sm!help":
-                    util.sendMsg(msg, 2, cmd.showHelp, coolDownSet);
-                    break;
-
-                case "sm!ping":
-                    util.sendMsg(msg, 2, cmd.showPing, coolDownSet);
-                    break;
-
-                case "sm!about":
-                    util.sendMsg(msg, 2, cmd.showAbout, coolDownSet, args = client.guilds.cache.size);
-                    break;
-
-                // trades manipulation
-                case "sm!newtrade":
-                    util.sendMsg(msg, 2, cmd.newTrade, coolDownSet);
-                    break;
-
-                case "sm!closetrade":
-                    util.sendMsg(msg, 2, cmd.closeTrade, coolDownSet);
-                    break;
-
-                case "sm!search":
-                    util.sendMsg(msg, 2, cmd.searchMarket, coolDownSet);
-                    break;
-
-                case "sm!show":
-                    util.sendMsg(msg, 2, cmd.showMarket, coolDownSet);
-                    break;
-
-                // Player info
-                case "sm!balance":
-                    util.sendMsg(msg, 2, cmd.showBalance, coolDownSet);
-                    break;
-
-                case "sm!list":
-                    util.sendMsg(msg, 2, cmd.showList, coolDownSet);
-                    break;
-
-                case "sm!daily":
-                    util.sendMsg(msg, 2, cmd.getDaily, coolDownSet);
-                    break;
+            if(!commandsList[sMsg[0]]){
+                return
             }
+
+            const {func, args} = commandsList[sMsg[0]];
+            util.sendMsg(msg, coolDownDelay, func, coolDownSet, args)
         }
         catch (e) {
             msg.channel.send("Something went terribly wrong! Please send the following text to Cryx#6546\n" +

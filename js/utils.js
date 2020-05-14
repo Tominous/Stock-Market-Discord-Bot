@@ -18,8 +18,7 @@ function isAccountCreated(userId, autoMessage = false, msg){
 
     if(!isCreated){
         if(autoMessage){
-            let text = (userId === msg.author.id) ? "You don't have any account! Please create one by typing `sm!init`" : "This member doesn't have any account!";
-            msg.channel.send(text);
+            msg.channel.send((userId === msg.author.id) ? "You don't have any account! Please create one by typing `sm!init`" : "This member doesn't have any account!");
         }
     }
     return isCreated;
@@ -75,11 +74,6 @@ function createEmbedMessage(msg, color, title, content = [], desc = null){
     };
     content.forEach(e => embed.embed.fields.push(e));
     return embed;
-}
-
-
-function prettyNum(num){
-    return parseFloat(num.toFixed(2)).toLocaleString();
 }
 
 
@@ -147,14 +141,13 @@ async function getTradeInfo(list, msg){
 
 function updateMoney(msg, userID, num){
     let money = getUserData(userID, "money").money;
-
-    money = (money + num < 0) ? 0 : (money + num);
+    money = Math.max(0, money + num);
     dbData.prepare("UPDATE data SET money = ? WHERE id = ?").run(money, userID);
 }
 
 
-function setRightNumFormat(num){
-    return (Math.abs(num) <= 10 && num !== 0) ? num.toFixed(5) : prettyNum(num);
+function setRightNumFormat(num, floatNum = true){
+    return (Math.abs(num) <= 10 && num !== 0 && floatNum) ? num.toFixed(5) : parseFloat(num.toFixed(2)).toLocaleString();
 }
 
 
@@ -169,7 +162,7 @@ function sendMsg(msg, sec, func, set, args = undefined){
     }
 }
 
-
+// Not used
 async function getChartFiveMinutes(tag, limit){
     let arr = await axios.get(`https://financialmodelingprep.com/api/v3/historical-chart/5min/${tag}`);
     let date = [];
@@ -208,13 +201,11 @@ async function getChartFiveMinutes(tag, limit){
 
 function getUserId(msg, txt){
     txt = txt.split(" ")[1];
-    if(txt !== undefined) {
 
-        let mark = txt.substring(0, 3).concat(txt.substring(txt.length - 1, txt.length));
-        if(mark === "<@!>"){
-            return txt.substring(3, txt.length - 1)
-        }
+    if(txt && txt.substring(0, 3).concat(txt.substring(txt.length - 1, txt.length)) === "<@!>") {
+        return txt.substring(3, txt.length - 1)
     }
+
     return msg.author.id;
 }
 
@@ -225,7 +216,6 @@ module.exports = {
     getTradeList : getTradeList,
     updateList : updateList,
     createEmbedMessage : createEmbedMessage,
-    prettyNum : prettyNum,
     getTradeInfo : getTradeInfo,
     setRightNumFormat : setRightNumFormat,
     updateMoney : updateMoney,
