@@ -10,8 +10,8 @@ Prefix by default: `sm!`
 ### Basics
 - `help` Gives you the help you need!
 - `init` The command to get started
-- `prefix` <prefix> Change my prefix to the choosen one!
--  *Note: Mention me with `prefix` to know my prefix! (@Stock Market prefix)*
+- `prefix <prefix>` Change my prefix to the choosen one!
+*Note: Mention me with `prefix` to know my prefix! (@Stock Market prefix)*
 - `ping` To see the latency between you, the bot and the API
 - `about` About the bot
 
