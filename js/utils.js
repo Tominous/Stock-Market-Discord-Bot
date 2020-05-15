@@ -1,5 +1,4 @@
-const sql = require("better-sqlite3");
-const dbData = sql("./db/userdata.db");
+const dbData = require("better-sqlite3")("./db/userdata.db");
 const fmp = require("financialmodelingprep");
 const axios = require("axios");
 const auth = require('../auth.json');
@@ -9,6 +8,24 @@ const fs = require('fs');
 
 function getUserData(userId, value = ["*"]){
     return dbData.prepare(`SELECT ${value} FROM data WHERE id = ?`).get(userId);
+}
+
+
+function getPrefixServer(serverId){
+    let query = dbData.prepare('SELECT prefix FROM prefix WHERE id = ?').get(serverId);
+    if (query !== undefined){
+        return [query.prefix, true];
+    }
+    return ["sm!", false];
+}
+
+function setPrefixServer(serverId, prefix){
+    if(!getPrefixServer(serverId)[1]){
+        dbData.prepare("INSERT INTO prefix VALUES(?,?)").run(serverId, prefix);
+    }
+    else{
+        dbData.prepare("UPDATE prefix SET prefix = ? WHERE id = ?").run(prefix, serverId);
+    }
 }
 
 
@@ -222,4 +239,6 @@ module.exports = {
     sendMsg : sendMsg,
     getChartFiveMinutes : getChartFiveMinutes,
     getUserId : getUserId,
+    getPrefixServer : getPrefixServer,
+    setPrefixServer : setPrefixServer,
 };

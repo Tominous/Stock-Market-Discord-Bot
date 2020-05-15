@@ -6,10 +6,12 @@ The data is provided by [financialmodelingprep.com](financialmodelingprep.com) t
 List available [here](https://github.com/cryx3001/Stock-Market-Discord-Bot/network/dependencies).
 
 ## Available commands
-Prefix: `sm!`
+Prefix by default: `sm!`
 ### Basics
 - `help` Gives you the help you need!
 - `init` The command to get started
+- `prefix` <prefix> Change my prefix to the choosen one!
+-  *Note: Mention me with `prefix` to know my prefix! (@Stock Market prefix)*
 - `ping` To see the latency between you, the bot and the API
 - `about` About the bot
 

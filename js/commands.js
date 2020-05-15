@@ -1,11 +1,9 @@
 const fmp = require("financialmodelingprep");
-const sql = require("better-sqlite3");
+const dbData = require("better-sqlite3")("./db/userdata.db");
 const util = require("./utils.js");
-const dbData = sql("./db/userdata.db");
 
-// sm!init
+//init
 function initializeUser(msg){
-
     if(util.isAccountCreated(msg.author.id)) {
         msg.channel.send("You have already initialized you're account!");
     }
@@ -16,7 +14,7 @@ function initializeUser(msg){
     }
 }
 
-// sm!balance
+//balance
 async function showBalance(msg){
     let displayName = msg.guild !== null ? (await msg.guild.members.fetch(util.getUserId(msg, msg.content))).displayName : msg.author.username;
     let userid = displayName === msg.author.username ? msg.author.id : util.getUserId(msg, msg.content);
@@ -31,13 +29,13 @@ async function showBalance(msg){
     }
 }
 
-//sm!help
+//help
 function showHelp(msg){
     msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Help!",
         [
             {
                 name: "*Basics*",
-                value: "`help` You're here \n`init` The command to get started \n`ping` To see the latency between you, the bot and the API\n`about` About the bot\n"
+                value: "`help` You're here \n`init` The command to get started \n`prefix <prefix>` Change my prefix to the choosen one! \n*Note: Mention me with `prefix` to know my prefix! (@Stock Market prefix)*\n`ping` To see the latency between you, the bot and the API\n`about` About the bot\n"
             },
             {
                 name: "*Player account*",
@@ -55,7 +53,28 @@ function showHelp(msg){
     ));
 }
 
-//sm!search
+//prefix
+function setPrefix(msg, arg){
+    if(arg === undefined || arg.length > 5 || arg.length < 1){
+        msg.channel.send("Your prefix is invalid! (Should be between 1 to 5 characters)");
+        return;
+    }
+    else if(msg.guild === null){
+        msg.channel.send("Sorry, you can't do that here.");
+        return;
+    }
+
+    let permsAuthor = msg.channel.permissionsFor(msg.author.id);
+    if(permsAuthor.has("ADMINISTRATOR") || permsAuthor.has("MANAGE_GUILD")){
+        (arg !== "sm!") ? util.setPrefixServer(msg.guild.id, arg) : dbData.prepare("DELETE FROM prefix WHERE id = ?").run(msg.guild.id);
+        msg.channel.send(`My prefix is now **${arg}**`);
+    }
+    else{
+        msg.channel.send("You don't have enough permission! (You need to have `ADMINISTRATOR` or `MANAGE_GUILD` permission on the server)");
+    }
+}
+
+//search
 async function searchMarket(msg){
     let tag = msg.content.split('sm!search ')[1];
 
@@ -83,7 +102,7 @@ async function searchMarket(msg){
     }
 }
 
-//sm!show
+//show
 function showMarket(msg){
     let tag = msg.content.split(' ')[1];
 
@@ -91,7 +110,7 @@ function showMarket(msg){
         try {
             resp = resp[0];
             msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [{
-                name: `Information for ${resp.name} (${resp.symbol}): `,
+                name: `Informations for ${resp.name} (${resp.symbol}): `,
                 value : `Price: **$${resp.price}** (Change: **${resp.changesPercentage}%** => **$${resp.change}**) \n \nSome prices may be different due to sources or delays.\nIf prices do not fluctuate, markets are likely closed.`
             }], `See the chart [here](https://tradingview.com/chart/?symbol=${resp.symbol})`));
         }
@@ -101,7 +120,7 @@ function showMarket(msg){
     });
 }
 
-//sm!daily
+//daily
 function getDaily(msg){
     if(util.isAccountCreated(msg.author.id, true, msg)){
         let data = util.getUserData(msg.author.id, ["dailytime", "money"])
@@ -133,7 +152,7 @@ function getDaily(msg){
     }
 }
 
-//sm!list
+//list
 async function showList(msg){
     let displayName = (msg.guild !== null) ? (await msg.guild.members.fetch(util.getUserId(msg, msg.content))).displayName : msg.author.username;
     let userid = (displayName === msg.author.username) ? msg.author.id : util.getUserId(msg, msg.content);
@@ -159,7 +178,7 @@ async function showList(msg){
     }
 }
 
-//sm!closetrade
+//closetrade
 async function closeTrade(msg){
     if(util.isAccountCreated(msg.author.id, true, msg)){
         let id = parseInt(msg.content.split(" ")[1]);
@@ -188,7 +207,7 @@ async function closeTrade(msg){
     }
 }
 
-//sm!newtrade
+//newtrade
 async function newTrade(msg){
     if(util.isAccountCreated(msg.author.id, true, msg)) {
         let status = msg.content.split(" ")[1];
@@ -239,7 +258,7 @@ async function newTrade(msg){
     }
 }
 
-//sm!ping
+//ping
 async function showPing(msg){
     let start = Date.now();
     let timeMsg = start - msg.createdTimestamp;
@@ -258,7 +277,7 @@ async function showPing(msg){
     ]));
 }
 
-//sm!about
+//about
 function showAbout(msg, num){
     let dbStats = dbData.prepare("SELECT SUM(money), COUNT(*) FROM data").get();
     let totalMoney = util.setRightNumFormat(dbStats["SUM(money)"], false);
@@ -294,4 +313,5 @@ module.exports = {
     showHelp : showHelp,
     showPing : showPing,
     showAbout : showAbout,
+    setPrefix : setPrefix,
 };
