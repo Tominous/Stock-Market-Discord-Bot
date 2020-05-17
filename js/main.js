@@ -4,7 +4,7 @@ const cmd = require ('./commands.js');
 const util = require ('./utils.js');
 const dbData = require("better-sqlite3")("./db/userdata.db");
 const coolDownSet = new Set();
-const coolDownDelay = 2;
+const coolDownDelay = 5;
 const client = new Discord.Client();
 
 client.login(auth.token);
