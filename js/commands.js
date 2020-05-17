@@ -128,13 +128,13 @@ function getDaily(msg){
         let delay = parseInt(data.dailytime) - dateNow;
 
         if(delay < 0){
-            let newBalance = data.money + 10000;
+            let newBalance = data.money + 2500;
             let newDailyTime = dateNow + 86400;
 
             dbData.prepare("UPDATE data SET money = ?, dailytime = ? WHERE id = ?").run(newBalance, newDailyTime,  msg.author.id,);
             msg.channel.send(util.createEmbedMessage(msg, "56C114", "Your daily reward!", [{
                 name : `You have received your daily reward!`,
-                value: `Thank you for your fidelity, you have received $10,000!`
+                value: `Thank you for your fidelity, you have received $2,500!`
                 }
             ]));
         }
