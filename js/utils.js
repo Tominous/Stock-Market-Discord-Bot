@@ -1,4 +1,5 @@
 const dbData = require("better-sqlite3")("./db/userdata.db");
+const discord = require('discord.js');
 const fmp = require("financialmodelingprep");
 const axios = require("axios");
 const auth = require('../auth.json');
@@ -19,6 +20,7 @@ function getPrefixServer(serverId){
     return ["sm!", false];
 }
 
+
 function setPrefixServer(serverId, prefix){
     if(!getPrefixServer(serverId)[1]){
         dbData.prepare("INSERT INTO prefix VALUES(?,?)").run(serverId, prefix);
@@ -33,10 +35,8 @@ function isAccountCreated(userId, autoMessage = false, msg){
     let row = dbData.prepare("SELECT id FROM data WHERE id = ?").get(userId);
     let isCreated = (row !== undefined);
 
-    if(!isCreated){
-        if(autoMessage){
-            msg.channel.send((userId === msg.author.id) ? "You don't have any account! Please create one by typing `sm!init`" : "This member doesn't have any account!");
-        }
+    if(!isCreated && autoMessage){
+        msg.channel.send((userId === msg.author.id) ? "You don't have any account! Please create one by typing `sm!init`" : "This member doesn't have any account!");
     }
     return isCreated;
 }
@@ -76,21 +76,23 @@ function updateList(msg, status, edit = []){
 }
 
 
-function createEmbedMessage(msg, color, title, content = [], desc = null){
-    let embed = {
-        embed : {
-            color: color,
-            description: desc,
+function createEmbedMessage(msg, color, title, content = [], desc = null, img = null){
+    let fields = [];
+    content.forEach(e => fields.push(e));
 
-            author: {
-                name: title
-            },
+    let embed = new discord.MessageEmbed()
+        .setColor(color)
+        .setDescription(desc || "")
+        .setAuthor(title || "")
+        .addFields(fields)
 
-            fields: []
-        }
-    };
-    content.forEach(e => embed.embed.fields.push(e));
-    return embed;
+    if(img) {
+        return embed
+            .attachFiles(`img/${img}`)
+            .setImage(`attachment://${img}`);
+    }
+
+    return embed
 }
 
 
@@ -179,40 +181,59 @@ function sendMsg(msg, sec, func, set, args = undefined){
     }
 }
 
-// Not used
-async function getChartFiveMinutes(tag, limit){
-    let arr = await axios.get(`https://financialmodelingprep.com/api/v3/historical-chart/5min/${tag}`);
-    let date = [];
-    let close = [];
 
-    let i = 0;
-    for(const elem of arr.data){
-        if(i >= limit){
-            break;
-        }
-        date.push(elem.date.split(" ")[1]);
-        close.push(elem.close);
-        i++;
+function getChart(tag, limit, msg){
+    return new Promise((resolve, reject) => {
+        axios.get(`https://financialmodelingprep.com/api/v3/historical-chart/5min/${tag}`).then((arr) =>
+        {
+            let date = [];
+            let close = [];
+            let i = 0;
+            try {
+                for (const elem of arr.data) {
+                    if (i >= limit) {
+                        break;
+                    }
+                    date.push(elem.date);
+                    close.push(elem.close);
+                    i++;
+                }
+            } catch (TypeError) {
+                console.log(`IMAGE NOT FOUND FOR ${tag} WITH ID ${msg.id}`)
+            }
+
+            let data = {
+                "data": [{
+                    x: date,
+                    y: close,
+                    type: "scatter",
+                    mode: "lines+markers"
+                }]
+            };
+
+
+            let opt = {
+                format: 'png',
+                width: '1000',
+                height: '500'
+            }
+
+            plotly.getImage(data, opt, function (err, imageStream) {
+                if (err) return console.log(err);
+                let filestream = fs.createWriteStream(`img/${msg.id}.png`);
+                imageStream.pipe(filestream);
+                filestream.on('error', resolve); //Even if the promise failed, we want Promise.Race (in commands.js) to be resolved as fast as possible
+                filestream.on('finish', resolve);
+            })
+        })
+    });
+}
+
+
+function autoDelete(msg, path, check){
+    if (check) {
+        fs.unlink(path, function (err) {if (err) throw err;})
     }
-
-    let data = [{
-        x: date,
-        y: close,
-        type: "scatter"
-    }];
-
-    let opt = {
-        format: 'png',
-        width: '1000',
-        height: '500'
-    }
-
-    let layout = {fileopt : "overwrite", filename : "simple-node-example"};
-    plotly.getImage(data, layout, function(err, imageStream){
-        if (err) return console.log(err);
-        let filestream = fs.createWriteStream('1.png');
-        imageStream.pipe(filestream);
-    })
 }
 
 
@@ -237,8 +258,9 @@ module.exports = {
     setRightNumFormat : setRightNumFormat,
     updateMoney : updateMoney,
     sendMsg : sendMsg,
-    getChartFiveMinutes : getChartFiveMinutes,
+    getChart : getChart,
     getUserId : getUserId,
     getPrefixServer : getPrefixServer,
     setPrefixServer : setPrefixServer,
+    autoDelete : autoDelete,
 };

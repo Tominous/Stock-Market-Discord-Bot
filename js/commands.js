@@ -1,6 +1,7 @@
 const fmp = require("financialmodelingprep");
 const dbData = require("better-sqlite3")("./db/userdata.db");
 const util = require("./utils.js");
+const fs = require("fs");
 
 //init
 function initializeUser(msg){
@@ -103,21 +104,44 @@ async function searchMarket(msg){
 }
 
 //show
-function showMarket(msg){
+async function showMarket(msg){
     let tag = msg.content.split(' ')[1];
+    let resp = await fmp.stock(tag).quote();
 
-    fmp.stock(tag).quote().then(resp => {
-        try {
+    try {
+        let timer = new Promise(function(resolve) {
+            setTimeout(resolve, 5000);
+        });
+
+        Promise.race([timer, util.getChart(tag.toUpperCase(), 36, msg)]).then(() =>{
             resp = resp[0];
-            msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [{
+            let pathImg = `${msg.id}.png`
+            let checkImg = fs.existsSync(`img/${pathImg}`)
+            let symbolUrl = resp.symbol.startsWith("^") ? resp.symbol.substring(1, resp.symbol.length) : resp.symbol;
+
+            let field = {
                 name: `Informations for ${resp.name} (${resp.symbol}): `,
-                value : `Price: **$${resp.price}** (Change: **${resp.changesPercentage}%** => **$${resp.change}**) \n \nSome prices may be different due to sources or delays.\nIf prices do not fluctuate, markets are likely closed.`
-            }], `See the chart [here](https://tradingview.com/chart/?symbol=${resp.symbol})`));
-        }
-        catch (e) {
-            msg.channel.send("Nothing was found. Please try again with an another symbol.");
-        }
-    });
+                value : `Price: **$${resp.price}** (Change: **${resp.changesPercentage}%** => **$${resp.change}**) \n \nSome prices may be different due to sources or delays.\n**If prices do not fluctuate, markets are likely closed.**`
+            }
+            let defaultDescription = `The chart couldn't load but one is available [here](https://tradingview.com/chart/?symbol=${symbolUrl}).`
+
+            msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [field],
+                description = !checkImg ? defaultDescription : `Chart available! __Timezone : New-York City (GMT-4)__`,
+                img = checkImg ? pathImg : null)
+
+            ).then(() => {
+                util.autoDelete(msg, `img/${pathImg}`, checkImg);
+
+            }).catch(err => {
+                msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [field], description = defaultDescription))
+                util.autoDelete(msg, `img/${pathImg}`, checkImg);
+            })
+        });
+    }
+    catch (e) {
+        msg.channel.send("Nothing was found. Please try again with an another symbol.");
+    }
+
 }
 
 //daily
