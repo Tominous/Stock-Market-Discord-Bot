@@ -184,7 +184,7 @@ function sendMsg(msg, sec, func, set, args = undefined){
 
 function getChart(tag, limit, msg){
     return new Promise((resolve, reject) => {
-        axios.get(`https://financialmodelingprep.com/api/v3/historical-chart/5min/${tag}`).then((arr) =>
+        axios.get(`https://financialmodelingprep.com/api/v3/historical-chart/15min/${tag}`).then((arr) =>
         {
             let date = [];
             let close = [];

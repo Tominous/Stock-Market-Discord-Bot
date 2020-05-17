@@ -113,7 +113,7 @@ async function showMarket(msg){
             setTimeout(resolve, 5000);
         });
 
-        Promise.race([timer, util.getChart(tag.toUpperCase(), 36, msg)]).then(() =>{
+        Promise.race([timer, util.getChart(tag.toUpperCase(), 192, msg)]).then(() =>{
             resp = resp[0];
             let pathImg = `${msg.id}.png`
             let checkImg = fs.existsSync(`img/${pathImg}`)
@@ -135,8 +135,9 @@ async function showMarket(msg){
             }).catch(err => {
                 msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [field], description = defaultDescription))
                 util.autoDelete(msg, `img/${pathImg}`, checkImg);
+                console.log(err);
             })
-        });
+        }).catch(err => console.log(err));
     }
     catch (e) {
         msg.channel.send("Nothing was found. Please try again with an another symbol.");
@@ -306,7 +307,6 @@ function showAbout(msg, num){
     let dbStats = dbData.prepare("SELECT SUM(money), COUNT(*) FROM data").get();
     let totalMoney = util.setRightNumFormat(dbStats["SUM(money)"], false);
     let totalMembers = util.setRightNumFormat(dbStats["COUNT(*)"], false);
-
     let arr = [
         {
             name: `Stats:`,
@@ -321,7 +321,7 @@ function showAbout(msg, num){
             value: `https://github.com/cryx3001/Stock-Market-Discord-Bot`
         }
     ];
-    msg.channel.send(util.createEmbedMessage(msg, "008CFF", "About the bot", [arr]));
+    msg.channel.send(util.createEmbedMessage(msg, "008CFF", "About the bot", arr));
 }
 
 
