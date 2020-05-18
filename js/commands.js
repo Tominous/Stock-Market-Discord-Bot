@@ -108,12 +108,13 @@ async function showMarket(msg){
     let tag = msg.content.split(' ')[1];
     let resp = await fmp.stock(tag).quote();
 
-    try {
-        let timer = new Promise(function(resolve) {
-            setTimeout(resolve, 5000);
-        });
+    
+    let timer = new Promise(function(resolve) {
+        setTimeout(resolve, 5000);
+    });
 
-        Promise.race([timer, util.getChart(tag.toUpperCase(), 192, msg)]).then(() =>{
+    Promise.race([timer, util.getChart(tag.toUpperCase(), 192, msg)]).then(() =>{
+        try {
             resp = resp[0];
             let pathImg = `${msg.id}.png`
             let checkImg = fs.existsSync(`img/${pathImg}`)
@@ -137,13 +138,13 @@ async function showMarket(msg){
                 util.autoDelete(msg, `img/${pathImg}`, checkImg);
                 console.log(err);
             })
-        }).catch(err => console.log(err));
-    }
-    catch (e) {
-        msg.channel.send("Nothing was found. Please try again with an another symbol.");
-    }
-
+        }
+        catch (e) {
+            msg.channel.send("Nothing was found. Please try again with an another symbol.");
+        }
+    }).catch(err => console.log(err));
 }
+    
 
 //daily
 function getDaily(msg){
