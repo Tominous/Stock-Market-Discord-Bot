@@ -4,7 +4,6 @@ const cmd = require ('./commands.js');
 const util = require ('./utils.js');
 const dbData = require("better-sqlite3")("./db/userdata.db");
 const coolDownSet = new Set();
-const coolDownDelay = 5;
 const client = new Discord.Client();
 
 client.login(auth.token);
@@ -67,6 +66,7 @@ client.on("message", msg => {
                 return
             }
             const {func, args} = commandsList[sMsg[0].split(prefix)[1]];
+            const coolDownDelay = (func === cmd.showMarket) ? 4 : 2;
             util.sendMsg(msg, coolDownDelay, func, coolDownSet, args);
         }
         catch (e) {
