@@ -5,12 +5,47 @@ const axios = require("axios");
 const auth = require('../auth.json');
 const plotly = require('plotly')(auth.usernameplot, auth.tokenplot);
 const fs = require('fs');
+const tdvApi = require("tradingview-scraper");
+const tv = new tdvApi.TradingViewAPI()
 
 
 function getUserData(userId, value = ["*"]){
     return dbData.prepare(`SELECT ${value} FROM data WHERE id = ?`).get(userId);
 }
 
+function getStockData(tagArray = []){
+    let data = [];
+    return new Promise((resolve, reject) => {
+        let i = 0;
+        let size = tagArray.length
+        // I'm sure this is ugly, but it works.
+        tagArray.forEach(tag => {
+            tv.getTicker(tag)
+                .then((resp) => {
+                    data.push({
+                        status: 1,
+                        price: resp.bid,
+                        symbol: resp.short_name,
+                        name: resp.description,
+                        changesPercentage: resp.chp,
+                        change: resp.ch,
+                        lastupdate: resp.last_update,
+                    })
+                    i++
+                    if(i >= size) resolve(data)
+
+                }
+                ).catch((err) => {
+                    console.log(err)
+                    data.push({
+                        status: 0
+                    })
+                    i++
+                    if(i >= size) resolve(data)
+            })
+        })
+    })
+}
 
 function getPrefixServer(serverId){
     let query = dbData.prepare('SELECT prefix FROM prefix WHERE id = ?').get(serverId);
@@ -263,4 +298,5 @@ module.exports = {
     getPrefixServer : getPrefixServer,
     setPrefixServer : setPrefixServer,
     autoDelete : autoDelete,
+    getStockData : getStockData,
 };
