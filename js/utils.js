@@ -159,16 +159,19 @@ async function getTradeInfo(list, msg){
     }
 
     let arrResult = [];
+    let sumTrades = 0;
+    let sumProfit = 0
     for(let m of arrTrade){
         let worthTrade = m.price * m.volume;
         let profit = worthTrade - m.haspaid;
         let shownWorthTrade = worthTrade;
-        let shownProfit = profit;
 
         if (m.status === "sell") {
             profit *= -1;
             worthTrade = profit + m.haspaid;
         }
+        sumTrades += worthTrade;
+        sumProfit += profit;
 
         let percentage = (profit / (m.price * m.volume)) * 100;
 
@@ -183,12 +186,11 @@ async function getTradeInfo(list, msg){
                 worthTrade: worthTrade,
                 profit : profit,
                 profitPercentage : percentage,
-                shownProfit : shownProfit,
                 shownWorthTrade : shownWorthTrade
             }
         )
     }
-    return arrResult;
+    return [arrResult, sumTrades, sumProfit];
 }
 
 

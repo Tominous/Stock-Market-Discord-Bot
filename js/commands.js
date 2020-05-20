@@ -19,13 +19,24 @@ async function showBalance(msg){
     let displayName = msg.guild !== null ? (await msg.guild.members.fetch(util.getUserId(msg, msg.content))).displayName : msg.author.username;
     let userid = displayName === msg.author.username ? msg.author.id : util.getUserId(msg, msg.content);
 
-    if(util.isAccountCreated(userid, true, msg)) {
-        let arr = {
+    if(util.isAccountCreated(userid, true, msg)){
+        let userMoney = util.getUserData(userid, "money").money
+        let arr = [{
             name: `Balance of ${displayName}:`,
-            value: `**$${util.setRightNumFormat(util.getUserData(userid, "money").money)}**`
-            };
+            value: `**$${util.setRightNumFormat(userMoney)}**`
+        }];
 
-        msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Balance", [arr]));
+        let list = util.getTradeList(msg);
+        if(list.length > 0){
+            let sumProfit = await util.getTradeInfo(list, msg);
+            let symb = sumProfit[2] > 0 ? "+" : "";
+            arr.push({
+                name: `Net worth with current trades (profit / loss)`,
+                value: `**$${util.setRightNumFormat(sumProfit[1] + userMoney)}** (**${symb}$${util.setRightNumFormat(sumProfit[2])}**)`
+            })
+        }
+
+        msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Balance", arr));
     }
 }
 
@@ -186,7 +197,9 @@ async function showList(msg){
             msg.channel.send((userid !== msg.author.id) ? `${displayName} doesn't own any share!` : "You don't own any share!" )
 
         } else {
-            let tradeInfoList = await util.getTradeInfo(list, msg);
+            let tradeInfo = await util.getTradeInfo(list, msg);
+            let tradeInfoList = tradeInfo[0];
+            let sumProfit = tradeInfo[2];
             for (const elem of tradeInfoList) {
                 let arr = {
                     name: `${elem.status.toUpperCase()} - ${elem.name} - ${elem.symbol.toUpperCase()} (ID: ${elem.id})`,
@@ -194,7 +207,7 @@ async function showList(msg){
                 };
                 embedList.push(arr);
             }
-            msg.channel.send(util.createEmbedMessage(msg, "008CFF", `Trades of ${displayName}`, embedList));
+            msg.channel.send(util.createEmbedMessage(msg, "008CFF", `Trades of ${displayName}`, embedList, `__Total profit:__ **$${util.setRightNumFormat(sumProfit)}**`));
             msg.channel.send("If some values are invalid, please go to the support server with a screenshot `https://discord.gg/K3tUKAV`")
         }
     }
@@ -211,8 +224,8 @@ async function closeTrade(msg){
         }
 
         else{
-            let trade =  util.getTradeList(msg, msg.author.id, id);
-            trade = await util.getTradeInfo([trade], msg, msg.author.id);
+            let trade = await util.getTradeInfo([util.getTradeList(msg, msg.author.id, id)], msg, msg.author.id);
+            trade = trade[0];
 
             util.updateMoney(msg, msg.author.id, trade[0].worthTrade);
 
@@ -223,9 +236,9 @@ async function closeTrade(msg){
                 value: `You have earned **$${util.setRightNumFormat(trade[0].worthTrade)}**`
             }]));
 
-            showBalance(msg);
-
             util.updateList(msg, "del" , [id]);
+
+            showBalance(msg);
         }
     }
 }
