@@ -1,6 +1,5 @@
 const dbData = require("better-sqlite3")("./db/userdata.db");
 const discord = require('discord.js');
-const fmp = require("financialmodelingprep");
 const axios = require("axios");
 const auth = require('../auth.json');
 const plotly = require('plotly')(auth.usernameplot, auth.tokenplot);
@@ -24,7 +23,7 @@ function getStockData(tagArray = []){
                 .then((resp) => {
                     data.push({
                         status: 1,
-                        price: resp.bid,
+                        price: resp.bid || resp.lp,
                         symbol: resp.short_name,
                         name: resp.description,
                         changesPercentage: resp.chp,
@@ -32,7 +31,7 @@ function getStockData(tagArray = []){
                         lastupdate: resp.last_update,
                     })
                     i++
-                    if(i >= size) resolve(data)
+                    if(i >= size) {resolve(data)}
 
                 }
                 ).catch((err) => {
@@ -89,7 +88,7 @@ function updateList(msg, status, edit = []){
     let list = getTradeList(msg);
 
     if(status === "del"){
-        list = list.filter(elem => elem.id !== edit[0]);
+        list = list.filter(elem => !edit.includes(elem.id));
     }
 
     else if(status === "add"){
@@ -136,7 +135,7 @@ async function getTradeInfo(list, msg){
     let arrTrade = [];
 
     for (const elem of list) {arrSymb.push(elem.symbol)}
-    let resp = await fmp.stock(arrSymb).quote();
+    let resp = await getStockData(arrSymb)
     try{
         list.forEach(elem => {
                 let market = resp.find(e => elem.symbol === e.symbol.toLowerCase())
@@ -193,6 +192,40 @@ async function getTradeInfo(list, msg){
 }
 
 
+function refundInvalidTrades(msg){
+    return new Promise((resolve => {
+        let list = getTradeList(msg, msg.author.id);
+        if(!list) resolve()
+        if(list.length === 0) resolve()
+
+        new Promise((resolve) => {
+            let invalidN = 0
+            let invalidId = []
+            let refund = 0
+            let i = 0
+            list.forEach(elem => {
+                getStockData([elem.symbol.toUpperCase()]).then((resp) => {
+                    if (resp[0].status === 0) {
+                        invalidN++;
+                        invalidId.push(elem.id)
+                        refund += parseFloat(elem.haspaid);
+                    }
+                    i++
+                    if (i >= list.length) resolve([invalidN, refund, invalidId]);
+                })
+            })
+        }).then((r) => {
+            if (r[0] > 0) {
+                msg.channel.send(`Sorry! Some of your trades are invalid since we have changed our data provider. **${r[0]}** trade(s) have been deleted and you have received **$${setRightNumFormat(r[1])}** as a refund.`)
+                updateList(msg, "del", r[2])
+                updateMoney(msg, msg.author.id, r[1]);
+            }
+            resolve()
+        })
+        }
+    ))
+}
+
 function updateMoney(msg, userID, num){
     let money = getUserData(userID, "money").money;
     money = Math.max(0, money + num);
@@ -205,7 +238,7 @@ function setRightNumFormat(num, floatNum = true){
 }
 
 
-function sendMsg(msg, sec, func, set, args = undefined){
+async function sendMsg(msg, sec, func, set, args = undefined){
     if(set.has(msg.author.id)) {
         msg.channel.send(`Please wait ${sec} seconds before using another command!`);
     }
@@ -216,7 +249,7 @@ function sendMsg(msg, sec, func, set, args = undefined){
     }
 }
 
-
+// Not used
 function getChart(tag, limit, msg){
     return new Promise((resolve, reject) => {
         axios.get(`https://financialmodelingprep.com/api/v3/historical-chart/15min/${tag}`).then((arr) =>
@@ -299,4 +332,5 @@ module.exports = {
     setPrefixServer : setPrefixServer,
     autoDelete : autoDelete,
     getStockData : getStockData,
+    refundInvalidTrades : refundInvalidTrades,
 };

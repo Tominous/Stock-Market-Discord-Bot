@@ -1,4 +1,3 @@
-const fmp = require("financialmodelingprep");
 const dbData = require("better-sqlite3")("./db/userdata.db");
 const util = require("./utils.js");
 const fs = require("fs");
@@ -6,7 +5,7 @@ const fs = require("fs");
 //init
 function initializeUser(msg){
     if(util.isAccountCreated(msg.author.id)) {
-        msg.channel.send("You have already initialized you're account!");
+        msg.channel.send("You have already initialized your account!");
     }
     else {
         dbData.prepare("INSERT INTO data VALUES(?,?,?,?)").run(msg.author.id, 100000, '{"trades" : []}', 0);
@@ -77,72 +76,67 @@ function setPrefix(msg, arg){
 
 //search
 async function searchMarket(msg){
-    let tag = msg.content.split('sm!search ')[1];
-
-    let response = await fmp.search(tag, 10);
-    if(response === undefined || response.length <= 0){
-        text = "Nothing was found, try to shorten the symbol or the name (as removing 'USD' from it if present) and try again.";
-        msg.channel.send(text);
-    }
-    else{
-        let arrText = [];
-        let arrSymb = []
-
-        for (const r of response) {arrSymb.push(r.symbol)}
-
-        let resp = await fmp.stock(arrSymb).quote();
-        for(const market of resp){
-            let text = {
-                name : `${market.name} (${market.symbol})`,
-                value : `Price: **$${market.price}**  (Change: **${market.changesPercentage}%** | **$${market.change}**)\n \n`
-            };
-            arrText.push(text);
-
-        }
-        msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Results", arrText));
-    }
+    // let tag = msg.content.split('sm!search ')[1];
+    //
+    // let response = await fmp.search(tag, 10);
+    // if(response === undefined || response.length <= 0){
+    //     text = "Nothing was found, try to shorten the symbol or the name (as removing 'USD' from it if present) and try again.";
+    //     msg.channel.send(text);
+    // }
+    // else{
+    //     let arrText = [];
+    //     let arrSymb = []
+    //
+    //     for (const r of response) {arrSymb.push(r.symbol)}
+    //
+    //     let resp = util.getStockData(arrSymb)
+    //     for(const market of resp){
+    //         let text = {
+    //             name : `${market.name} (${market.symbol})`,
+    //             value : `Price: **$${market.price}**  (Change: **${market.changesPercentage}%** | **$${market.change}**)\n \n`
+    //         };
+    //         arrText.push(text);
+    //
+    //     }
+    //     msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Results", arrText));
+    // }
+    msg.channel.send("Sorry! The service providing data has changed, please search your market here: https://www.tradingview.com/screener/ ")
 }
 
 //show
 async function showMarket(msg){
     let tag = msg.content.split(' ')[1];
-    let resp = await fmp.stock(tag).quote();
+    let resp = await util.getStockData([tag])
 
-    
-    let timer = new Promise(function(resolve) {
-        setTimeout(resolve, 5000);
-    });
+    // let timer = new Promise(function(resolve) {
+    //     setTimeout(resolve, 5000);
+    // });
 
-    Promise.race([timer, util.getChart(tag.toUpperCase(), 192, msg)]).then(() =>{
-        try {
-            resp = resp[0];
-            let pathImg = `${msg.id}.png`
-            let checkImg = fs.existsSync(`img/${pathImg}`)
-            let symbolUrl = resp.symbol.startsWith("^") ? resp.symbol.substring(1, resp.symbol.length) : resp.symbol;
+    // Promise.race([timer, util.getChart(tag.toUpperCase(), 192, msg)]).then(() =>{
+    try {
+        resp = resp[0];
+        let symbolUrl = resp.symbol.startsWith("^") ? resp.symbol.substring(1, resp.symbol.length) : resp.symbol;
 
-            let field = {
-                name: `Informations for ${resp.name} (${resp.symbol}): `,
-                value : `Price: **$${resp.price}** (Change: **${resp.changesPercentage}%** => **$${resp.change}**) \n \nSome prices may be different due to sources or delays.\n**If prices do not fluctuate, markets are likely closed.**`
-            }
-            let defaultDescription = `The chart couldn't load but one is available [here](https://tradingview.com/chart/?symbol=${symbolUrl}).`
-
-            msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [field],
-                description = !checkImg ? defaultDescription : `Chart available! __Timezone : New-York City (GMT-4)__`,
-                img = checkImg ? pathImg : null)
-
-            ).then(() => {
-                util.autoDelete(msg, `img/${pathImg}`, checkImg);
-
-            }).catch(err => {
-                msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [field], description = defaultDescription))
-                util.autoDelete(msg, `img/${pathImg}`, checkImg);
-                console.log(err);
-            })
+        let field = {
+            name: `Informations for ${resp.name} (${resp.symbol}): `,
+            value : `Price: **$${resp.price}** (Change: **${resp.changesPercentage}%** => **$${resp.change}**) \n \nSome prices may be different due to sources or delays.\n**If prices do not fluctuate, markets are likely closed.**`
         }
-        catch (e) {
-            msg.channel.send("Nothing was found. Please try again with an another symbol.");
-        }
-    }).catch(err => console.log(err));
+        let defaultDescription = `Chart available [here](https://tradingview.com/chart/?symbol=${symbolUrl}).`
+
+        msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [field], description = defaultDescription))
+        //
+        // ).then(() => {
+        //     util.autoDelete(msg, `img/${pathImg}`, checkImg);
+        // }).catch(err => {
+        //     msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [field], description = defaultDescription))
+        //     util.autoDelete(msg, `img/${pathImg}`, checkImg);
+        //     console.log(err);
+        // })
+    }
+    catch (e) {
+        msg.channel.send("Nothing was found. Please try again with an another symbol.");
+    }
+    // }).catch(err => console.log(err));
 }
     
 
@@ -184,6 +178,7 @@ async function showList(msg){
     let userid = (displayName === msg.author.username) ? msg.author.id : util.getUserId(msg, msg.content);
 
     if(util.isAccountCreated(userid, true, msg)) {
+        await util.refundInvalidTrades(msg);
         let list = util.getTradeList(msg, userid);
         let embedList = [];
 
@@ -200,6 +195,7 @@ async function showList(msg){
                 embedList.push(arr);
             }
             msg.channel.send(util.createEmbedMessage(msg, "008CFF", `Trades of ${displayName}`, embedList));
+            msg.channel.send("If some values are invalid, please go to the support server with a screenshot `https://discord.gg/K3tUKAV`")
         }
     }
 }
@@ -207,6 +203,7 @@ async function showList(msg){
 //closetrade
 async function closeTrade(msg){
     if(util.isAccountCreated(msg.author.id, true, msg)){
+        await util.refundInvalidTrades(msg);
         let id = parseInt(msg.content.split(" ")[1]);
 
         if(util.getTradeList(msg, msg.author.id, id) === undefined || isNaN(id)){
@@ -239,7 +236,7 @@ async function newTrade(msg){
         let status = msg.content.split(" ")[1];
         let symb = msg.content.split(" ")[2];
         let amount = msg.content.split(" ")[3];
-        let resp = await fmp.stock(symb).quote();
+        let resp = await util.getStockData([symb])
         let list = util.getTradeList(msg, msg.author.id);
 
         if(resp[0] === undefined || resp[0].price === null){
@@ -290,7 +287,7 @@ async function showPing(msg){
     let timeMsg = start - msg.createdTimestamp;
 
     start = Date.now()
-    await fmp.stock("APPL").quote();
+    await util.getStockData(["AAPL"])
     let timeAPI = Date.now() - start;
 
     console.log(`Bot: ${timeMsg}ms, API: ${timeAPI}ms`)

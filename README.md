@@ -1,6 +1,6 @@
 # Stock market bot
 A bot to "play" with the stock market by using fake money.
-The data is provided by [financialmodelingprep.com](financialmodelingprep.com) through the library [financialmodelingprep](https://github.com/patelneel55/financialmodelingprep).
+The data is provided by [tradingview](https://www.tradingview.com) through the library [tradingview-scraper](https://https://github.com/imxeno/tradingview-scraper).
 
 ## Node.js dependencies
 List available [here](https://github.com/cryx3001/Stock-Market-Discord-Bot/network/dependencies).

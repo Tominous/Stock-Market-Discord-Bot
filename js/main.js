@@ -66,7 +66,7 @@ client.on("message", msg => {
                 return
             }
             const {func, args} = commandsList[sMsg[0].split(prefix)[1]];
-            const coolDownDelay = (func === cmd.showMarket) ? 4 : 2;
+            const coolDownDelay = 2;
             util.sendMsg(msg, coolDownDelay, func, coolDownSet, args);
         }
         catch (e) {
