@@ -8,11 +8,11 @@ const tdvApi = require("tradingview-scraper");
 const tv = new tdvApi.TradingViewAPI()
 
 
-function getUserData(userId, value = ["*"]){
+function getUserData(userId, value = ["*"]) {
     return dbData.prepare(`SELECT ${value} FROM data WHERE id = ?`).get(userId);
 }
 
-function getStockData(tagArray = []){
+function getStockData(tagArray = []) {
     let data = [];
     return new Promise((resolve, reject) => {
         let i = 0;
@@ -21,62 +21,63 @@ function getStockData(tagArray = []){
         tagArray.forEach(tag => {
             tv.getTicker(tag)
                 .then((resp) => {
-                    data.push({
-                        status: 1,
-                        price: resp.bid || resp.lp,
-                        symbol: resp.short_name,
-                        name: resp.description,
-                        changesPercentage: resp.chp,
-                        change: resp.ch,
-                        lastupdate: resp.last_update,
-                    })
-                    i++
-                    if(i >= size) {resolve(data)}
+                        data.push({
+                            status: 1,
+                            price: resp.lp || resp.bid,
+                            symbol: resp.short_name,
+                            name: resp.description,
+                            changesPercentage: resp.chp,
+                            change: resp.ch,
+                            lastupdate: resp.last_update,
+                        })
+                        i++
+                        if (i >= size) {
+                            resolve(data)
+                        }
 
-                }
+                    }
                 ).catch((err) => {
-                    console.log(err)
-                    data.push({
-                        status: 0
-                    })
-                    i++
-                    if(i >= size) resolve(data)
+                console.log(err)
+                data.push({
+                    status: 0
+                })
+                i++
+                if (i >= size) resolve(data)
             })
         })
     })
 }
 
-function getPrefixServer(serverId){
+function getPrefixServer(serverId) {
     let query = dbData.prepare('SELECT prefix FROM prefix WHERE id = ?').get(serverId);
-    if (query !== undefined){
+    if (query !== undefined) {
         return [query.prefix, true];
     }
     return ["sm!", false];
 }
 
 
-function setPrefixServer(serverId, prefix){
-    if(!getPrefixServer(serverId)[1]){
+function setPrefixServer(serverId, prefix) {
+    if (!getPrefixServer(serverId)[1]) {
         dbData.prepare("INSERT INTO prefix VALUES(?,?)").run(serverId, prefix);
-    }
-    else{
+    } else {
         dbData.prepare("UPDATE prefix SET prefix = ? WHERE id = ?").run(prefix, serverId);
     }
 }
 
 
-function isAccountCreated(userId, autoMessage = false, msg){
+function isAccountCreated(userId, autoMessage = false, msg) {
     let row = dbData.prepare("SELECT id FROM data WHERE id = ?").get(userId);
     let isCreated = (row !== undefined);
 
-    if(!isCreated && autoMessage){
+    if (!isCreated && autoMessage) {
         msg.channel.send((userId === msg.author.id) ? "You don't have any account! Please create one by typing `sm!init`" : "This member doesn't have any account!");
     }
     return isCreated;
 }
 
 
-function getTradeList(msg, userId = msg.author.id, value = null){
+function getTradeList(msg, userId = msg.author.id, value = null) {
     let list = getUserData(userId, "trades").trades;
 
     list = JSON.parse(list).trades;
@@ -84,33 +85,32 @@ function getTradeList(msg, userId = msg.author.id, value = null){
 }
 
 
-function updateList(msg, status, edit = []){
+function updateList(msg, status, edit = []) {
     let list = getTradeList(msg);
 
-    if(status === "del"){
+    if (status === "del") {
         list = list.filter(elem => !edit.includes(elem.id));
-    }
-
-    else if(status === "add"){
+    } else if (status === "add") {
         let i = 0;
-        for(i; list.find(elem => elem.id === i); i++){}
+        for (i; list.find(elem => elem.id === i); i++) {
+        }
         let elemToAdd = {
-            id : i,
-            symbol : edit[0],
-            status : edit[1],
-            volume : edit[2],
+            id: i,
+            symbol: edit[0],
+            status: edit[1],
+            volume: edit[2],
             haspaid: edit[3],
         };
 
         list.push(elemToAdd);
     }
 
-    list = {trades : list};
+    list = {trades: list};
     dbData.prepare("UPDATE data SET trades = ? WHERE id = ?").run(JSON.stringify(list), msg.author.id);
 }
 
 
-function createEmbedMessage(msg, color, title, content = [], desc = null, img = null){
+function createEmbedMessage(msg, color, title, content = [], desc = null, img = null) {
     let fields = [];
     content.forEach(e => fields.push(e));
 
@@ -120,7 +120,7 @@ function createEmbedMessage(msg, color, title, content = [], desc = null, img = 
         .setAuthor(title || "")
         .addFields(fields)
 
-    if(img) {
+    if (img) {
         return embed
             .attachFiles(`img/${img}`)
             .setImage(`attachment://${img}`);
@@ -130,38 +130,38 @@ function createEmbedMessage(msg, color, title, content = [], desc = null, img = 
 }
 
 
-async function getTradeInfo(list, msg){
+async function getTradeInfo(list, msg) {
     let arrSymb = [];
     let arrTrade = [];
 
-    for (const elem of list) {arrSymb.push(elem.symbol)}
-    let resp = await getStockData(arrSymb)
-    try{
-        list.forEach(elem => {
-                let market = resp.find(e => elem.symbol === e.symbol.toLowerCase())
-                arrTrade.push(
-                    {
-                        id: elem.id,
-                        name: market.name,
-                        symbol: elem.symbol,
-                        volume: elem.volume,
-                        status: elem.status,
-                        haspaid: parseFloat(elem.haspaid),
-                        price: market.price,
-                    }
-                )
-            }
-        );
+    for (const elem of list) {
+        arrSymb.push(elem.symbol)
     }
-    catch (e) {
-        msg.channel.send("API Error! Please try later.\n```\n"+e+"\n```");
+    let resp = await getStockData(arrSymb);
+    try {
+        list.forEach(elem => {
+            let market = resp.find(e => elem.symbol.toLowerCase() === e.symbol.toLowerCase() || elem.symbol.toLowerCase().split(":")[1] === e.symbol.toLowerCase())
+            arrTrade.push(
+                {
+                    id: elem.id,
+                    name: market.name,
+                    symbol: elem.symbol,
+                    volume: elem.volume,
+                    status: elem.status,
+                    haspaid: parseFloat(elem.haspaid),
+                    price: market.price,
+                }
+            )
+        });
+    } catch (e) {
+        msg.channel.send("API Error! Please try later.\n```\n" + e + "\n```");
         console.error(e);
     }
 
     let arrResult = [];
     let sumTrades = 0;
     let sumProfit = 0
-    for(let m of arrTrade){
+    for (let m of arrTrade) {
         let worthTrade = m.price * m.volume;
         let profit = worthTrade - m.haspaid;
         let shownWorthTrade = worthTrade;
@@ -173,20 +173,20 @@ async function getTradeInfo(list, msg){
         sumTrades += worthTrade;
         sumProfit += profit;
 
-        let percentage = (profit / (m.price * m.volume)) * 100;
+        let percentage = (profit / m.haspaid) * 100;
 
         arrResult.push(
             {
-                name : m.name,
-                symbol : m.symbol,
-                status : m.status,
-                id : m.id,
-                volume : m.volume,
-                haspaid : m.haspaid,
+                name: m.name,
+                symbol: m.symbol,
+                status: m.status,
+                id: m.id,
+                volume: m.volume,
+                haspaid: m.haspaid,
                 worthTrade: worthTrade,
-                profit : profit,
-                profitPercentage : percentage,
-                shownWorthTrade : shownWorthTrade
+                profit: profit,
+                profitPercentage: percentage,
+                shownWorthTrade: shownWorthTrade
             }
         )
     }
@@ -194,57 +194,56 @@ async function getTradeInfo(list, msg){
 }
 
 
-function refundInvalidTrades(msg){
+function refundInvalidTrades(msg) {
     return new Promise((resolve => {
-        let list = getTradeList(msg, msg.author.id);
-        if(!list) resolve()
-        if(list.length === 0) resolve()
+            let list = getTradeList(msg, msg.author.id);
+            if (!list) resolve()
+            if (list.length === 0) resolve()
 
-        new Promise((resolve) => {
-            let invalidN = 0
-            let invalidId = []
-            let refund = 0
-            let i = 0
-            list.forEach(elem => {
-                getStockData([elem.symbol.toUpperCase()]).then((resp) => {
-                    if (resp[0].status === 0) {
-                        invalidN++;
-                        invalidId.push(elem.id)
-                        refund += parseFloat(elem.haspaid);
-                    }
-                    i++
-                    if (i >= list.length) resolve([invalidN, refund, invalidId]);
+            new Promise((resolve) => {
+                let invalidN = 0
+                let invalidId = []
+                let refund = 0
+                let i = 0
+                list.forEach(elem => {
+                    getStockData([elem.symbol.toUpperCase()]).then((resp) => {
+                        if (resp[0].status === 0) {
+                            invalidN++;
+                            invalidId.push(elem.id)
+                            refund += parseFloat(elem.haspaid);
+                        }
+                        i++
+                        if (i >= list.length) resolve([invalidN, refund, invalidId]);
+                    })
                 })
+            }).then((r) => {
+                if (r[0] > 0) {
+                    msg.channel.send(`Sorry! Some of your trades are invalid since we have changed our data provider. **${r[0]}** trade(s) have been deleted and you have received **$${setRightNumFormat(r[1])}** as a refund.`)
+                    updateList(msg, "del", r[2])
+                    updateMoney(msg, msg.author.id, r[1]);
+                }
+                resolve()
             })
-        }).then((r) => {
-            if (r[0] > 0) {
-                msg.channel.send(`Sorry! Some of your trades are invalid since we have changed our data provider. **${r[0]}** trade(s) have been deleted and you have received **$${setRightNumFormat(r[1])}** as a refund.`)
-                updateList(msg, "del", r[2])
-                updateMoney(msg, msg.author.id, r[1]);
-            }
-            resolve()
-        })
         }
     ))
 }
 
-function updateMoney(msg, userID, num){
+function updateMoney(msg, userID, num) {
     let money = getUserData(userID, "money").money;
     money = Math.max(0, money + num);
     dbData.prepare("UPDATE data SET money = ? WHERE id = ?").run(money, userID);
 }
 
 
-function setRightNumFormat(num, floatNum = true){
+function setRightNumFormat(num, floatNum = true) {
     return (Math.abs(num) <= 10 && num !== 0 && floatNum) ? num.toFixed(5) : parseFloat(num.toFixed(2)).toLocaleString();
 }
 
 
-async function sendMsg(msg, sec, func, set, args = undefined){
-    if(set.has(msg.author.id)) {
+async function sendMsg(msg, sec, func, set, args = undefined) {
+    if (set.has(msg.author.id)) {
         msg.channel.send(`Please wait ${sec} seconds before using another command!`);
-    }
-    else {
+    } else {
         func(msg, args);
         set.add(msg.author.id);
         setTimeout(() => set.delete(msg.author.id), sec * 1000);
@@ -252,10 +251,9 @@ async function sendMsg(msg, sec, func, set, args = undefined){
 }
 
 // Not used
-function getChart(tag, limit, msg){
+function getChart(tag, limit, msg) {
     return new Promise((resolve, reject) => {
-        axios.get(`https://financialmodelingprep.com/api/v3/historical-chart/15min/${tag}`).then((arr) =>
-        {
+        axios.get(`https://financialmodelingprep.com/api/v3/historical-chart/15min/${tag}`).then((arr) => {
             let date = [];
             let close = [];
             let i = 0;
@@ -300,17 +298,19 @@ function getChart(tag, limit, msg){
 }
 
 
-function autoDelete(msg, path, check){
+function autoDelete(msg, path, check) {
     if (check) {
-        fs.unlink(path, function (err) {if (err) throw err;})
+        fs.unlink(path, function (err) {
+            if (err) throw err;
+        })
     }
 }
 
 
-function getUserId(msg, txt){
+function getUserId(msg, txt) {
     txt = txt.split(" ")[1];
 
-    if(txt && txt.substring(0, 3).concat(txt.substring(txt.length - 1, txt.length)) === "<@!>") {
+    if (txt && txt.substring(0, 3).concat(txt.substring(txt.length - 1, txt.length)) === "<@!>") {
         return txt.substring(3, txt.length - 1)
     }
 
@@ -319,20 +319,20 @@ function getUserId(msg, txt){
 
 
 module.exports = {
-    getUserData : getUserData,
-    isAccountCreated : isAccountCreated,
-    getTradeList : getTradeList,
-    updateList : updateList,
-    createEmbedMessage : createEmbedMessage,
-    getTradeInfo : getTradeInfo,
-    setRightNumFormat : setRightNumFormat,
-    updateMoney : updateMoney,
-    sendMsg : sendMsg,
-    getChart : getChart,
-    getUserId : getUserId,
-    getPrefixServer : getPrefixServer,
-    setPrefixServer : setPrefixServer,
-    autoDelete : autoDelete,
-    getStockData : getStockData,
-    refundInvalidTrades : refundInvalidTrades,
+    getUserData: getUserData,
+    isAccountCreated: isAccountCreated,
+    getTradeList: getTradeList,
+    updateList: updateList,
+    createEmbedMessage: createEmbedMessage,
+    getTradeInfo: getTradeInfo,
+    setRightNumFormat: setRightNumFormat,
+    updateMoney: updateMoney,
+    sendMsg: sendMsg,
+    getChart: getChart,
+    getUserId: getUserId,
+    getPrefixServer: getPrefixServer,
+    setPrefixServer: setPrefixServer,
+    autoDelete: autoDelete,
+    getStockData: getStockData,
+    refundInvalidTrades: refundInvalidTrades,
 };
