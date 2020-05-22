@@ -24,7 +24,7 @@ async function showBalance(msg) {
             name: `Balance of ${displayName}:`,
             value: `**$${util.setRightNumFormat(userMoney)}**`
         }];
-
+        await util.refundInvalidTrades(msg);
         let list = util.getTradeList(msg);
         if (list.length > 0) {
             let sumProfit = await util.getTradeInfo(list, msg);
@@ -203,7 +203,7 @@ async function showList(msg) {
                 embedList.push(arr);
             }
             msg.channel.send(util.createEmbedMessage(msg, "008CFF", `Trades of ${displayName}`, embedList, `__Total profit:__ **$${util.setRightNumFormat(sumProfit)}**`));
-            msg.channel.send("If some values are invalid, please go to the support server with a screenshot `https://discord.gg/K3tUKAV`")
+            //msg.channel.send("If some values are invalid, please go to the support server with a screenshot `https://discord.gg/K3tUKAV`")
         }
     }
 }
@@ -245,7 +245,7 @@ async function newTrade(msg) {
         let resp = await util.getStockData([symb])
         let list = util.getTradeList(msg, msg.author.id);
 
-        if (resp[0] === undefined || resp[0].price === null) {
+        if (resp[0].status === 0 || resp[0] === undefined || resp[0].price === undefined) {
             msg.channel.send("Unknown market! Please search one with `sm!search <name/symbol>` (ex: *sm!search Apple* or *sm!search AAPL*)");
         } else if ((status !== "buy" && status !== "sell") || isNaN(amount) || amount === "" || amount < 0) {
             msg.channel.send("Syntax error! Please try again. `sm!newtrade <buy/sell> <symbol> <amount>`");
