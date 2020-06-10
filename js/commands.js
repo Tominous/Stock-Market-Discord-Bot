@@ -24,7 +24,6 @@ async function showBalance(msg) {
             name: `Balance of ${displayName}:`,
             value: `**$${util.setRightNumFormat(userMoney)}**`
         }];
-        await util.refundInvalidTrades(msg);
         let list = util.getTradeList(msg);
         if (list.length > 0) {
             let sumProfit = await util.getTradeInfo(list, msg);
@@ -184,7 +183,6 @@ async function showList(msg) {
     let userid = (displayName === msg.author.username) ? msg.author.id : util.getUserId(msg, msg.content);
 
     if (util.isAccountCreated(userid, true, msg)) {
-        await util.refundInvalidTrades(msg);
         let list = util.getTradeList(msg, userid);
         let embedList = [];
 
@@ -193,9 +191,8 @@ async function showList(msg) {
 
         } else {
             let tradeInfo = await util.getTradeInfo(list, msg);
-            let tradeInfoList = tradeInfo[0];
             let sumProfit = tradeInfo[2];
-            for (const elem of tradeInfoList) {
+            for (const elem of tradeInfo[0]) {
                 let arr = {
                     name: `${elem.status.toUpperCase()} - ${elem.name} - ${elem.symbol.toUpperCase()} (ID: ${elem.id})`,
                     value: `Change: **${util.setRightNumFormat(elem.profitPercentage)}%**\n__By share__: Paid: **$${util.setRightNumFormat(elem.haspaid / elem.volume)}**, Now: **$${util.setRightNumFormat(elem.shownWorthTrade / elem.volume)}** (Profit: **$${(util.setRightNumFormat((elem.profit / elem.volume)))}**)\n__Your trade__: Paid: **$${util.setRightNumFormat(elem.haspaid)}**, Now: **$${util.setRightNumFormat(elem.shownWorthTrade)}** (Profit: **$${util.setRightNumFormat(elem.profit)}**)\n`
@@ -211,7 +208,6 @@ async function showList(msg) {
 //closetrade
 async function closeTrade(msg) {
     if (util.isAccountCreated(msg.author.id, true, msg)) {
-        await util.refundInvalidTrades(msg);
         let id = parseInt(msg.content.split(" ")[1]);
 
         if (util.getTradeList(msg, msg.author.id, id) === undefined || isNaN(id)) {
@@ -220,18 +216,29 @@ async function closeTrade(msg) {
             let trade = await util.getTradeInfo([util.getTradeList(msg, msg.author.id, id)], msg, msg.author.id);
             trade = trade[0];
 
-            util.updateMoney(msg, msg.author.id, trade[0].worthTrade);
-
-            let earnedLost = (trade[0].profit > 0) ? ["earned", "56C114"] : ["lost", "FF0000"];
-            msg.channel.send(util.createEmbedMessage(msg, earnedLost[1], "Trade closed",
-                [{
+            let arrMsg, titleMsg;
+            if(trade[0].worthTrade !== undefined && !isNaN(trade[0].worthTrade)){
+                titleMsg = "Trade closed";
+                arrMsg = {
                     name: `Trade n°**${id}** closed.`,
                     value: `You have earned **$${util.setRightNumFormat(trade[0].worthTrade)}**`
-                }]));
+                }
+                util.updateMoney(msg, msg.author.id, trade[0].worthTrade);
+                util.updateList(msg, "del", [id]);
+                showBalance(msg);
 
-            util.updateList(msg, "del", [id]);
+            }
+            else {
+                titleMsg = "Error!";
+                arrMsg = {
+                    name: `Failed to close the trade n°**${id}**!`,
+                    value: `The value retrieved by the service is invalid, please try later. If this error persist, please contact the support.`
+                }
+            }
 
-            showBalance(msg);
+            let earnedLost = (trade[0].profit > 0) ? ["earned", "56C114"] : ["lost", "FF0000"];
+            msg.channel.send(util.createEmbedMessage(msg, earnedLost[1], titleMsg, [arrMsg]));
+
         }
     }
 }

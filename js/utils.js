@@ -12,6 +12,7 @@ function getUserData(userId, value = ["*"]) {
     return dbData.prepare(`SELECT ${value} FROM data WHERE id = ?`).get(userId);
 }
 
+
 function getStockData(tagArray = []) {
     let data = [];
     return new Promise((resolve, reject) => {
@@ -21,25 +22,25 @@ function getStockData(tagArray = []) {
         tagArray.forEach(tag => {
             tv.getTicker(tag)
                 .then((resp) => {
-                        data.push({
-                            status: 1,
-                            price: resp.lp || resp.bid,
-                            symbol: resp.short_name,
-                            name: resp.description,
-                            changesPercentage: resp.chp,
-                            change: resp.ch,
-                            lastupdate: resp.last_update,
-                        })
-                        i++
-                        if (i >= size) {
-                            resolve(data)
-                        }
-
+                    data.push({
+                        status: 1,
+                        price: resp.lp || resp.bid,
+                        symbol: resp.short_name.toUpperCase(),
+                        name: resp.description,
+                        changesPercentage: resp.chp,
+                        change: resp.ch,
+                        lastupdate: resp.last_update,
+                    })
+                    i++
+                    if (i >= size) {
+                        resolve(data)
                     }
+
+                }
                 ).catch((err) => {
-                console.log(err)
-                data.push({
-                    status: 0
+                    console.log(err)
+                    data.push({
+                        status: 0
                 })
                 i++
                 if (i >= size) resolve(data)
@@ -47,6 +48,7 @@ function getStockData(tagArray = []) {
         })
     })
 }
+
 
 function getPrefixServer(serverId) {
     let query = dbData.prepare('SELECT prefix FROM prefix WHERE id = ?').get(serverId);
@@ -140,12 +142,13 @@ async function getTradeInfo(list, msg) {
     let resp = await getStockData(arrSymb);
     try {
         list.forEach(elem => {
-            let market = resp.find(e => elem.symbol.toLowerCase() === e.symbol.toLowerCase() || elem.symbol.toLowerCase().split(":")[1] === e.symbol.toLowerCase())
+            let market = resp.find(e => elem.symbol.toUpperCase() === e.symbol || elem.symbol.toUpperCase().split(":")[1] === e.symbol)
+            let isValid = market.price !== undefined && !isNaN(market.price);
             arrTrade.push(
                 {
                     id: elem.id,
-                    name: market.name,
-                    symbol: elem.symbol,
+                    name: isValid ?  market.name : "REQUEST FAILED, RETRY LATER",
+                    symbol: isValid ?  elem.symbol : "API ERROR",
                     volume: elem.volume,
                     status: elem.status,
                     haspaid: parseFloat(elem.haspaid),
@@ -154,7 +157,7 @@ async function getTradeInfo(list, msg) {
             )
         });
     } catch (e) {
-        msg.channel.send("API Error! Please try later.\n```\n" + e + "\n```");
+        msg.channel.send("Something went terribly wrong! Please try later.\n```\n" + e + "\n```");
         console.error(e);
     }
 
@@ -170,8 +173,8 @@ async function getTradeInfo(list, msg) {
             profit *= -1;
             worthTrade = profit + m.haspaid;
         }
-        sumTrades += worthTrade;
-        sumProfit += profit;
+        sumTrades += (worthTrade !== undefined && !isNaN(worthTrade)) ? worthTrade : 0;
+        sumProfit += (profit !== undefined && !isNaN(profit)) ? profit : 0;
 
         let percentage = (profit / m.haspaid) * 100;
 
@@ -194,39 +197,41 @@ async function getTradeInfo(list, msg) {
 }
 
 
-function refundInvalidTrades(msg) {
-    return new Promise((resolve => {
-            let list = getTradeList(msg, msg.author.id);
-            if (!list) resolve()
-            if (list.length === 0) resolve()
+// Not used, but could be useful oneday
+// function refundInvalidTrades(msg) {
+//     return new Promise((resolve => {
+//             let list = getTradeList(msg, msg.author.id);
+//             if (!list) resolve()
+//             if (list.length === 0) resolve()
+//
+//             new Promise((resolve) => {
+//                 let invalidN = 0
+//                 let invalidId = []
+//                 let refund = 0
+//                 let i = 0
+//                 list.forEach(elem => {
+//                     getStockData([elem.symbol.toUpperCase()]).then((resp) => {
+//                         if (resp[0].status === 0) {
+//                             invalidN++;
+//                             invalidId.push(elem.id)
+//                             refund += parseFloat(elem.haspaid);
+//                         }
+//                         i++
+//                         if (i >= list.length) resolve([invalidN, refund, invalidId]);
+//                     })
+//                 })
+//             }).then((r) => {
+//                 if (r[0] > 0) {
+//                     msg.channel.send(`Sorry! Some of your trades are invalid since we have changed our data provider. **${r[0]}** trade(s) have been deleted and you have received **$${setRightNumFormat(r[1])}** as a refund.`)
+//                     updateList(msg, "del", r[2])
+//                     updateMoney(msg, msg.author.id, r[1]);
+//                 }
+//                 resolve()
+//             })
+//         }
+//     ))
+// }
 
-            new Promise((resolve) => {
-                let invalidN = 0
-                let invalidId = []
-                let refund = 0
-                let i = 0
-                list.forEach(elem => {
-                    getStockData([elem.symbol.toUpperCase()]).then((resp) => {
-                        if (resp[0].status === 0) {
-                            invalidN++;
-                            invalidId.push(elem.id)
-                            refund += parseFloat(elem.haspaid);
-                        }
-                        i++
-                        if (i >= list.length) resolve([invalidN, refund, invalidId]);
-                    })
-                })
-            }).then((r) => {
-                if (r[0] > 0) {
-                    msg.channel.send(`Sorry! Some of your trades are invalid since we have changed our data provider. **${r[0]}** trade(s) have been deleted and you have received **$${setRightNumFormat(r[1])}** as a refund.`)
-                    updateList(msg, "del", r[2])
-                    updateMoney(msg, msg.author.id, r[1]);
-                }
-                resolve()
-            })
-        }
-    ))
-}
 
 function updateMoney(msg, userID, num) {
     let money = getUserData(userID, "money").money;
@@ -334,5 +339,4 @@ module.exports = {
     setPrefixServer: setPrefixServer,
     autoDelete: autoDelete,
     getStockData: getStockData,
-    refundInvalidTrades: refundInvalidTrades,
 };
