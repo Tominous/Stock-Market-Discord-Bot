@@ -83,30 +83,30 @@ function setPrefix(msg, arg) {
 
 //search
 async function searchMarket(msg) {
-    // let tag = msg.content.split('sm!search ')[1];
-    //
-    // let response = await fmp.search(tag, 10);
-    // if(response === undefined || response.length <= 0){
-    //     text = "Nothing was found, try to shorten the symbol or the name (as removing 'USD' from it if present) and try again.";
-    //     msg.channel.send(text);
-    // }
-    // else{
-    //     let arrText = [];
-    //     let arrSymb = []
-    //
-    //     for (const r of response) {arrSymb.push(r.symbol)}
-    //
-    //     let resp = util.getStockData(arrSymb)
-    //     for(const market of resp){
-    //         let text = {
-    //             name : `${market.name} (${market.symbol})`,
-    //             value : `Price: **$${market.price}**  (Change: **${market.changesPercentage}%** | **$${market.change}**)\n \n`
-    //         };
-    //         arrText.push(text);
-    //
-    //     }
-    //     msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Results", arrText));
-    // }
+     let tag = msg.content.split('sm!search ')[1];
+    
+     let response = await fmp.search(tag, 10);
+     if(response === undefined || response.length <= 0){
+         text = "Nothing was found, try to shorten the symbol or the name (as removing 'USD' from it if present) and try again.";
+         msg.channel.send(text);
+     }
+     else{
+         let arrText = [];
+         let arrSymb = []
+    
+         for (const r of response) {arrSymb.push(r.symbol)}
+    
+         let resp = util.getStockData(arrSymb)
+         for(const market of resp){
+             let text = {
+                 name : `${market.name} (${market.symbol})`,
+                 value : `Price: **$${market.price}**  (Change: **${market.changesPercentage}%** | **$${market.change}**)\n \n`
+             };
+             arrText.push(text);
+    
+         }
+         msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Results", arrText));
+     }
     msg.channel.send("Sorry! The service providing data has changed, please search your market here: https://www.tradingview.com/screener/ ")
 }
 
@@ -115,11 +115,11 @@ async function showMarket(msg) {
     let tag = msg.content.split(' ')[1];
     let resp = await util.getStockData([tag])
 
-    // let timer = new Promise(function(resolve) {
-    //     setTimeout(resolve, 5000);
-    // });
+     let timer = new Promise(function(resolve) {
+         setTimeout(resolve, 5000);
+     });
 
-    // Promise.race([timer, util.getChart(tag.toUpperCase(), 192, msg)]).then(() =>{
+     Promise.race([timer, util.getChart(tag.toUpperCase(), 192, msg)]).then(() =>{
     try {
         resp = resp[0];
         let symbolUrl = resp.symbol.startsWith("^") ? resp.symbol.substring(1, resp.symbol.length) : resp.symbol;
@@ -131,18 +131,18 @@ async function showMarket(msg) {
         let defaultDescription = `Chart available [here](https://tradingview.com/chart/?symbol=${symbolUrl}).`
 
         msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [field], description = defaultDescription))
-        //
-        // ).then(() => {
-        //     util.autoDelete(msg, `img/${pathImg}`, checkImg);
-        // }).catch(err => {
-        //     msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [field], description = defaultDescription))
-        //     util.autoDelete(msg, `img/${pathImg}`, checkImg);
-        //     console.log(err);
-        // })
+        
+         ).then(() => {
+             util.autoDelete(msg, `img/${pathImg}`, checkImg);
+         }).catch(err => {
+             msg.channel.send(util.createEmbedMessage(msg, "008CFF", "Details", [field], description = defaultDescription))
+             util.autoDelete(msg, `img/${pathImg}`, checkImg);
+             console.log(err);
+         })
     } catch (e) {
         msg.channel.send("Nothing was found. Please try again with an another symbol.");
     }
-    // }).catch(err => console.log(err));
+     }).catch(err => console.log(err));
 }
 
 
@@ -200,7 +200,7 @@ async function showList(msg) {
                 embedList.push(arr);
             }
             msg.channel.send(util.createEmbedMessage(msg, "008CFF", `Trades of ${displayName}`, embedList, `__Total profit:__ **$${util.setRightNumFormat(sumProfit)}**`));
-            //msg.channel.send("If some values are invalid, please go to the support server with a screenshot `https://discord.gg/K3tUKAV`")
+            msg.channel.send("If some values are invalid, please go to the support server with a screenshot `https://discord.gg/K3tUKAV`")
         }
     }
 }
