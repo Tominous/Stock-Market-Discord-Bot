@@ -198,39 +198,39 @@ async function getTradeInfo(list, msg) {
 
 
 // Not used, but could be useful oneday
-// function refundInvalidTrades(msg) {
-//     return new Promise((resolve => {
-//             let list = getTradeList(msg, msg.author.id);
-//             if (!list) resolve()
-//             if (list.length === 0) resolve()
-//
-//             new Promise((resolve) => {
-//                 let invalidN = 0
-//                 let invalidId = []
-//                 let refund = 0
-//                 let i = 0
-//                 list.forEach(elem => {
-//                     getStockData([elem.symbol.toUpperCase()]).then((resp) => {
-//                         if (resp[0].status === 0) {
-//                             invalidN++;
-//                             invalidId.push(elem.id)
-//                             refund += parseFloat(elem.haspaid);
-//                         }
-//                         i++
-//                         if (i >= list.length) resolve([invalidN, refund, invalidId]);
-//                     })
-//                 })
-//             }).then((r) => {
-//                 if (r[0] > 0) {
-//                     msg.channel.send(`Sorry! Some of your trades are invalid since we have changed our data provider. **${r[0]}** trade(s) have been deleted and you have received **$${setRightNumFormat(r[1])}** as a refund.`)
-//                     updateList(msg, "del", r[2])
-//                     updateMoney(msg, msg.author.id, r[1]);
-//                 }
-//                 resolve()
-//             })
-//         }
-//     ))
-// }
+ function refundInvalidTrades(msg) {
+     return new Promise((resolve => {
+             let list = getTradeList(msg, msg.author.id);
+             if (!list) resolve()
+             if (list.length === 0) resolve()
+
+             new Promise((resolve) => {
+                 let invalidN = 0
+                 let invalidId = []
+                 let refund = 0
+                 let i = 0
+                 list.forEach(elem => {
+                     getStockData([elem.symbol.toUpperCase()]).then((resp) => {
+                         if (resp[0].status === 0) {
+                             invalidN++;
+                             invalidId.push(elem.id)
+                             refund += parseFloat(elem.haspaid);
+                         }
+                         i++
+                         if (i >= list.length) resolve([invalidN, refund, invalidId]);
+                     })
+                 })
+             }).then((r) => {
+                 if (r[0] > 0) {
+                     msg.channel.send(`Sorry! Some of your trades are invalid since we have changed our data provider. **${r[0]}** trade(s) have been deleted and you have received **$${setRightNumFormat(r[1])}** as a refund.`)
+                     updateList(msg, "del", r[2])
+                     updateMoney(msg, msg.author.id, r[1]);
+                 }
+                 resolve()
+             })
+         }
+     ))
+ }
 
 
 function updateMoney(msg, userID, num) {
